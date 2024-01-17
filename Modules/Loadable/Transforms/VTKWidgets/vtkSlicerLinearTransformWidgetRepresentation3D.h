@@ -46,6 +46,9 @@ class vtkMRMLInteractionEventData;
 class VTK_SLICER_TRANSFORMS_MODULE_VTKWIDGETS_EXPORT vtkSlicerLinearTransformWidgetRepresentation3D : public vtkSlicerLinearTransformWidgetRepresentation
 {
 public:
+  /// Instantiate this class.
+  static vtkSlicerLinearTransformWidgetRepresentation3D* New();
+
   /// Standard methods for instances of this class.
   vtkTypeMacro(vtkSlicerLinearTransformWidgetRepresentation3D, vtkSlicerLinearTransformWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent) override;

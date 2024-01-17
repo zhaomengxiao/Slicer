@@ -43,6 +43,8 @@
 #include "vtkMRMLTransformNode.h"
 #include <vtkMRMLApplicationLogic.h>
 
+vtkStandardNewMacro(vtkSlicerLinearTransformWidget);
+
 //----------------------------------------------------------------------
 vtkSlicerLinearTransformWidget::vtkSlicerLinearTransformWidget()
 {
@@ -408,6 +410,38 @@ void vtkSlicerLinearTransformWidget::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os, indent);
 }
 
+void vtkSlicerLinearTransformWidget::CreateDefaultRepresentation(vtkMRMLTransformDisplayNode* transformDisplayNode,
+  vtkMRMLAbstractViewNode* viewNode, vtkRenderer* renderer)
+{
+  vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation> rep = nullptr;
+  if (vtkMRMLSliceNode::SafeDownCast(viewNode))
+  {
+    rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation2D>::New();
+    vtkSlicerLinearTransformWidgetRepresentation2D::New();
+  }
+  else
+  {
+    rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation3D>::New();
+  }
+  this->SetRenderer(renderer);
+  this->SetRepresentation(rep);
+  rep->SetViewNode(viewNode);
+  rep->SetTransformDisplayNode(transformDisplayNode);
+  rep->UpdateFromMRML(nullptr, 0); // full update
+}
+
+vtkSlicerLinearTransformWidget* vtkSlicerLinearTransformWidget::CreateInstance() const
+{
+  vtkObject* ret = vtkObjectFactory::CreateInstance("vtkSlicerLinearTransformWidget");
+  if (ret)
+  {
+    return static_cast<vtkSlicerLinearTransformWidget*>(ret);
+  }
+  vtkSlicerLinearTransformWidget* result = new vtkSlicerLinearTransformWidget;
+  result->InitializeObjectBase();
+  return result;
+}
+
 //-----------------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::CanProcessInteractionEvent(vtkMRMLInteractionEventData* eventData, double &distance2)
 {
@@ -760,13 +794,26 @@ void vtkSlicerLinearTransformWidget::TranslateWidget(double eventPos[2])
       }
     }
 
-  vtkNew<vtkTransform> translationTransform;
-  translationTransform->Translate(translationVector_World);
+  vtkNew<vtkTransform> T_WorldToNode;
+  T_WorldToNode->Translate(translationVector_World);
 
   vtkNew<vtkMatrix4x4> matrix;
   transformNode->GetMatrixTransformToWorld(matrix);
-  translationTransform->Concatenate(matrix);
-  transformNode->SetMatrixTransformToParent(translationTransform->GetMatrix()); //todo to world not parent
+  T_WorldToNode->Concatenate(matrix);
+
+  vtkNew<vtkTransform> toParent;
+  toParent->PostMultiply();
+  vtkMRMLTransformNode* parentNode = transformNode->GetParentTransformNode();
+  if (parentNode)
+  {
+    vtkNew<vtkMatrix4x4> T_worldToParent;
+    parentNode->GetMatrixTransformToWorld(T_worldToParent.GetPointer());
+    toParent->Concatenate(T_worldToParent.GetPointer());
+  }
+  
+  toParent->Concatenate(T_WorldToNode->GetLinearInverse());
+
+  transformNode->SetMatrixTransformToParent(toParent->GetMatrix());
 }
 
 //----------------------------------------------------------------------
@@ -970,15 +1017,27 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
   vtkNew<vtkMatrix4x4> t;
   transformNode->GetMatrixTransformToWorld(t);
  
-  vtkNew<vtkTransform> handleToWorldTransform;
-  handleToWorldTransform->PostMultiply();
-  handleToWorldTransform->Concatenate(t);
-  handleToWorldTransform->Translate(-origin_World[0], -origin_World[1], -origin_World[2]);
-  handleToWorldTransform->RotateWXYZ(angle, rotationAxis_World);
-  handleToWorldTransform->Translate(origin_World[0], origin_World[1], origin_World[2]);
-  transformNode->SetMatrixTransformToParent(handleToWorldTransform->GetMatrix());//todo to world not parent
+  vtkNew<vtkTransform> T_WorldToNode;
+  T_WorldToNode->PostMultiply();
+  T_WorldToNode->Concatenate(t);
+  T_WorldToNode->Translate(-origin_World[0], -origin_World[1], -origin_World[2]);
+  T_WorldToNode->RotateWXYZ(angle, rotationAxis_World);
+  T_WorldToNode->Translate(origin_World[0], origin_World[1], origin_World[2]);
 
-  
+
+  vtkNew<vtkTransform> toParent;
+  toParent->PostMultiply();
+  vtkMRMLTransformNode* parentNode = transformNode->GetParentTransformNode();
+  if (parentNode)
+  {
+    vtkNew<vtkMatrix4x4> T_worldToParent;
+    parentNode->GetMatrixTransformToWorld(T_worldToParent.GetPointer());
+    toParent->Concatenate(T_worldToParent.GetPointer());
+  }
+
+  toParent->Concatenate(T_WorldToNode->GetLinearInverse());
+
+  transformNode->SetMatrixTransformToParent(toParent->GetMatrix());
 }
 
 //----------------------------------------------------------------------

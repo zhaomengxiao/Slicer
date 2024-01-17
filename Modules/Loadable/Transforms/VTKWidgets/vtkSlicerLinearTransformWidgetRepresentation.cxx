@@ -88,8 +88,10 @@ vtkSlicerLinearTransformWidgetRepresentation::vtkSlicerLinearTransformWidgetRepr
 //----------------------------------------------------------------------
 void vtkSlicerLinearTransformWidgetRepresentation::SetupInteractionPipeline()
 {
+  vtkWarningMacro("vtkSlicerLinearTransformWidgetRepresentation::SetupInteractionPipeline::Start");
   this->InteractionPipeline = new TransformInteractionPipeline(this);
   this->InteractionPipeline->InitializePipeline();
+  vtkWarningMacro("vtkSlicerLinearTransformWidgetRepresentation::SetupInteractionPipeline::End");
 }
 
 //----------------------------------------------------------------------
@@ -258,6 +260,16 @@ void vtkSlicerLinearTransformWidgetRepresentation::UpdateInteractionPipeline()
     }
 
   this->InteractionPipeline->Actor->SetVisibility(this->TransformDisplayNode->GetEditorVisibility());
+  //todo debug
+  if (this->TransformDisplayNode->GetEditorVisibility())
+  {
+    vtkInfoMacro("HandleVisibility True"<< this->TransformDisplayNode->GetEditorVisibility())
+  }
+  else
+  {
+    vtkInfoMacro("HandleVisibility False")
+  }
+  
   this->InteractionPipeline->UpdateHandleVisibility();
 
   vtkNew<vtkTransform> handleToWorldTransform;
@@ -449,11 +461,13 @@ vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline::~Tra
 //----------------------------------------------------------------------
 void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline::InitializePipeline()
 {
+  vtkGenericWarningMacro("TransformInteractionPipeline::InitializePipeline::Start");
   this->CreateRotationHandles();
   this->CreateTranslationHandles();
   this->CreateScaleHandles();
   this->UpdateHandleVisibility();
   this->UpdateHandleColors();
+  vtkGenericWarningMacro("TransformInteractionPipeline::InitializePipeline::End");
 }
 
 //----------------------------------------------------------------------
@@ -701,6 +715,7 @@ void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline:
   if (rotationVisibilityArray)
     {
     bool rotationVisibility = displayNode->GetEditorRotationEnabled();
+    vtkGenericWarningMacro("rotationVisibility:"<< rotationVisibility);
     rotationVisibilityArray->SetValue(0, rotationVisibility);
     rotationVisibilityArray->SetValue(1, rotationVisibility);
     rotationVisibilityArray->SetValue(2, rotationVisibility);
@@ -710,6 +725,7 @@ void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline:
   if (translationVisibilityArray)
     {
     bool translationVisibility = displayNode->GetEditorTranslationEnabled();
+    vtkGenericWarningMacro("translationVisibility:" << translationVisibility);
     translationVisibilityArray->SetValue(0, translationVisibility);
     translationVisibilityArray->SetValue(1, translationVisibility);
     translationVisibilityArray->SetValue(2, translationVisibility);

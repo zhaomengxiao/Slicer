@@ -50,6 +50,9 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 
+#include "vtkSlicerLinearTransformWidget.h"
+#include "vtkSlicerLinearTransformWidgetRepresentation.h"
+
 const double DEFAULT_SCALE[3] = {100.0, 100.0, 100.0};
 
 //---------------------------------------------------------------------------
@@ -137,6 +140,11 @@ public:
   typedef std::map < vtkBoxWidget2*, vtkMRMLTransformDisplayNode* > WidgetToNodeMapType;
   WidgetToNodeMapType WidgetMap;
 
+  /// Map of vtkWidget indexed using associated node ID
+  typedef std::map < vtkSmartPointer<vtkMRMLTransformDisplayNode>, vtkSlicerLinearTransformWidget* > DisplayNodeToWidgetType;
+  typedef std::map < vtkSmartPointer<vtkMRMLTransformDisplayNode>, vtkSlicerLinearTransformWidget* >::iterator DisplayNodeToWidgetIt;
+  DisplayNodeToWidgetType TransformDisplayNodesToWidgets;  // display nodes with widgets assigned
+
   // Transforms
   void AddTransformNode(vtkMRMLTransformNode* displayableNode);
   void RemoveTransformNode(vtkMRMLTransformNode* displayableNode);
@@ -153,6 +161,10 @@ public:
   void UpdateWidgetDisplayTransform(Pipeline*, vtkMRMLTransformNode*);
   void UpdateWidgetFromNode(vtkMRMLTransformDisplayNode*, vtkMRMLTransformNode*, Pipeline*);
   void UpdateNodeFromWidget(vtkBoxWidget2*);
+
+  // New Widget
+  vtkSlicerLinearTransformWidget* GetWidget(vtkMRMLTransformDisplayNode* node);
+  vtkSlicerLinearTransformWidget* CreateWidget(vtkMRMLTransformDisplayNode* displayNode);
 
   // Observations
   void AddObservations(vtkMRMLTransformNode* node);
@@ -277,12 +289,19 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::UpdateDisplayable
 //---------------------------------------------------------------------------
 void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::RemoveDisplayNode(vtkMRMLTransformDisplayNode* displayNode)
 {
+  if (!displayNode)
+  {
+    return;
+  }
+  this->RemoveDisplayObservations(displayNode);
+
+  //remove old interactor
   PipelinesCacheType::iterator actorsIt = this->DisplayPipelines.find(displayNode);
   if(actorsIt == this->DisplayPipelines.end())
     {
     return;
     }
-  this->RemoveDisplayObservations(displayNode);
+  
   Pipeline* pipeline = actorsIt->second;
   if (pipeline->Widget)
     {
@@ -296,6 +315,23 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::RemoveDisplayNode
   this->WidgetMap.erase(pipeline->Widget);
   delete pipeline;
   this->DisplayPipelines.erase(actorsIt);
+
+  //remove new interactor
+  DisplayNodeToWidgetIt displayNodeIt = this->TransformDisplayNodesToWidgets.find(displayNode);
+  if (displayNodeIt == this->TransformDisplayNodesToWidgets.end())
+  {
+    return;
+  }
+  vtkSlicerLinearTransformWidget* widget = (displayNodeIt->second);
+  if (!widget)
+  {
+    return;
+  }
+  widget->SetRenderer(nullptr);
+  widget->SetRepresentation(nullptr);
+  widget->Delete();
+  this->TransformDisplayNodesToWidgets.erase(displayNode);
+
 }
 
 //---------------------------------------------------------------------------
@@ -319,6 +355,7 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::AddDisplayNode(vt
 
   this->AddDisplayObservations(displayNode);
 
+  //old Interactor
   // Create pipeline
   Pipeline* pipeline = new Pipeline();
   pipeline->UpdateWidgetBounds = true;
@@ -361,6 +398,55 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::AddDisplayNode(vt
 
   // Update cached matrices. Calls UpdateDisplayNodePipeline
   this->UpdateDisplayableTransforms(mNode, true);
+
+
+  //new Interactor
+  // Do not add the display node if displayNodeIt is already associated with a widget object.
+  // This happens when a segmentation node already associated with a display node
+  // is copied into an other (using vtkMRMLNode::Copy()) and is added to the scene afterward.
+  // Related issue are #3428 and #2608
+  DisplayNodeToWidgetIt displayNodeIt
+    = this->TransformDisplayNodesToWidgets.find(displayNode);
+  if (displayNodeIt != this->TransformDisplayNodesToWidgets.end())
+  {
+    return;
+  }
+
+  // There should not be a widget for the new node
+  if (this->GetWidget(displayNode) != nullptr)
+  {
+    vtkDebugWithObjectMacro(displayNodeIt,"vtkMRMLMarkupsDisplayableManager2D: A widget is already associated to this node");
+    return;
+  }
+
+  int wasModified = 0;
+  if (displayNode->GetDisplayableNode())
+  {
+    // Prevent potential recursive calls during UpdateFromMRML call before the new widget is stored
+    // in MarkupsDisplayNodesToWidgets.
+    wasModified = displayNode->GetDisplayableNode()->StartModify();
+  }
+
+  vtkSlicerLinearTransformWidget* newWidget = CreateWidget(displayNode);
+  if (!newWidget)
+  {
+    vtkWarningWithObjectMacro(newWidget,"vtkMRMLLinearDisplayableManager3D: Failed to create widget");
+    return;
+  }
+
+  // record the mapping between node and widget in the helper
+  this->TransformDisplayNodesToWidgets[displayNode] = newWidget;
+
+  // Build representation
+  newWidget->UpdateFromMRML(displayNode, 0); // no specific event triggers full rebuild
+
+  if (displayNode->GetDisplayableNode())
+  {
+    displayNode->GetDisplayableNode()->EndModify(wasModified);
+  }
+
+  /*this->RequestRender();*///todo update?
+  vtkWarningWithObjectMacro(newWidget,"Debug !!!!!!!!!!!");
 }
 
 //---------------------------------------------------------------------------
@@ -499,6 +585,50 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal
   node->SetMatrixTransformToParent(toParent->GetMatrix());
 }
 
+vtkSlicerLinearTransformWidget* vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::GetWidget(
+  vtkMRMLTransformDisplayNode* node)
+{
+  if (!node)
+  {
+    return nullptr;
+  }
+
+  // Make sure the map contains a vtkWidget associated with this node
+  DisplayNodeToWidgetIt it = this->TransformDisplayNodesToWidgets.find(node);
+  if (it == this->TransformDisplayNodesToWidgets.end())
+  {
+    return nullptr;
+  }
+
+  return it->second;
+}
+
+vtkSlicerLinearTransformWidget* vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::CreateWidget(
+  vtkMRMLTransformDisplayNode* displayNode)
+{
+  vtkMRMLTransformNode* markupsNode = vtkMRMLTransformNode::SafeDownCast(displayNode->GetDisplayableNode());
+  if (!markupsNode)
+  {
+    vtkErrorWithObjectMacro(markupsNode, "CreateWidget: invalid Markups logic.");
+    return nullptr;
+  }
+
+  // Create a widget 
+  vtkSlicerLinearTransformWidget* widget = vtkSlicerLinearTransformWidget::New();
+
+  if (!widget)
+  {
+    vtkErrorWithObjectMacro(widget,"vtkMRMLMarkupsDisplayableManager::CreateWidget failed: cannot instantiate widget for LinearTransform " );
+    return nullptr;
+  }
+
+  vtkMRMLAbstractViewNode* viewNode = vtkMRMLAbstractViewNode::SafeDownCast(this->External->GetMRMLDisplayableNode());
+  vtkRenderer* renderer = this->External->GetRenderer();
+  widget->SetMRMLApplicationLogic(this->External->GetMRMLApplicationLogic());
+  widget->CreateDefaultRepresentation(displayNode, viewNode, renderer);
+  return widget;
+}
+
 //---------------------------------------------------------------------------
 void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal
 ::UpdateDisplayNodePipeline(
@@ -532,6 +662,9 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal
     this->UpdateWidgetFromNode(displayNode, transformNode, pipeline);
     return;
     }
+
+
+
 }
 
 //---------------------------------------------------------------------------

@@ -118,6 +118,9 @@ public:
   /// Get the position of an interaction handle in world coordinates
   virtual void GetInteractionHandlePositionWorld(int type, int index, double position[3]);
 
+	/// Update the interaction pipeline
+	virtual void UpdateInteractionPipeline();
+
 protected:
   vtkSlicerLinearTransformWidgetRepresentation();
   ~vtkSlicerLinearTransformWidgetRepresentation() override;
@@ -257,8 +260,7 @@ protected:
   virtual void SetupInteractionPipeline();
   TransformInteractionPipeline* InteractionPipeline;
 
-  /// Update the interaction pipeline
-  virtual void UpdateInteractionPipeline();
+  
 
 private:
 	vtkSlicerLinearTransformWidgetRepresentation(const vtkSlicerLinearTransformWidgetRepresentation&) = delete;

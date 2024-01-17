@@ -300,6 +300,7 @@ void vtkMRMLMarkupsDisplayableManagerHelper::AddDisplayNode(vtkMRMLMarkupsDispla
     }
 
   vtkSlicerMarkupsWidget* newWidget = this->DisplayableManager->CreateWidget(markupsDisplayNode);
+  
   if (!newWidget)
     {
     vtkErrorMacro("vtkMRMLMarkupsDisplayableManager2D: Failed to create widget");

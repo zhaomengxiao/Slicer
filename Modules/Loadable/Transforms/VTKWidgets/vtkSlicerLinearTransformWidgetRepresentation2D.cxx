@@ -47,6 +47,8 @@
 #include <vtkMRMLFolderDisplayNode.h>
 #include <vtkMRMLInteractionEventData.h>
 
+vtkStandardNewMacro(vtkSlicerLinearTransformWidgetRepresentation2D);
+
 //----------------------------------------------------------------------
 vtkSlicerLinearTransformWidgetRepresentation2D::vtkSlicerLinearTransformWidgetRepresentation2D()
 {

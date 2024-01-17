@@ -47,15 +47,17 @@ class vtkSlicerLinearTransformWidgetRepresentation;
 class VTK_SLICER_TRANSFORMS_MODULE_VTKWIDGETS_EXPORT vtkSlicerLinearTransformWidget : public vtkMRMLAbstractWidget
 {
 public:
+  /// Instantiate this class.
+  static vtkSlicerLinearTransformWidget* New();
   /// Standard methods for a VTK class.
   vtkTypeMacro(vtkSlicerLinearTransformWidget, vtkMRMLAbstractWidget);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /// Create the default widget representation and initializes the widget and representation.
-  virtual void CreateDefaultRepresentation(vtkMRMLTransformDisplayNode* markupsDisplayNode, vtkMRMLAbstractViewNode* viewNode, vtkRenderer* renderer) = 0;
+  virtual void CreateDefaultRepresentation(vtkMRMLTransformDisplayNode* transformDisplayNode, vtkMRMLAbstractViewNode* viewNode, vtkRenderer* renderer);
 
   /// Create instance of the Transform widget
-  virtual vtkSlicerLinearTransformWidget* CreateInstance() const = 0;
+  virtual vtkSlicerLinearTransformWidget* CreateInstance() const ;
 
   /// Widget states
   enum

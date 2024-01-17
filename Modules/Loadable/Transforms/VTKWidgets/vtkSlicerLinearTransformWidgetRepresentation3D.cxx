@@ -37,6 +37,8 @@
 #include <vtkMRMLInteractionEventData.h>
 #include <vtkMRMLViewNode.h>
 
+vtkStandardNewMacro(vtkSlicerLinearTransformWidgetRepresentation3D);
+
 //----------------------------------------------------------------------
 vtkSlicerLinearTransformWidgetRepresentation3D::vtkSlicerLinearTransformWidgetRepresentation3D()
 {
@@ -499,14 +501,9 @@ void vtkSlicerLinearTransformWidgetRepresentation3D::UpdateViewScaleFactor()
 //----------------------------------------------------------------------
 void vtkSlicerLinearTransformWidgetRepresentation3D::UpdateInteractionPipeline()
 {
-  vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(this->ViewNode);
-  if (!viewNode)
-    {
-    this->InteractionPipeline->Actor->SetVisibility(false);
-    return;
-    }
   // Final visibility handled by superclass in vtkSlicerLinearTransformWidgetRepresentation
   Superclass::UpdateInteractionPipeline();
+  vtkWarningMacro("Debug!!!!,vtkSlicerLinearTransformWidgetRepresentation3D,UpdateInteractionPipeline");
 }
 
 //-----------------------------------------------------------------------------

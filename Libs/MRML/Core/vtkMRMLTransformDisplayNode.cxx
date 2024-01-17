@@ -90,8 +90,8 @@ vtkMRMLTransformDisplayNode::vtkMRMLTransformDisplayNode()
     this->ContourLevelsMm.push_back(level);
     }
 
-  this->EditorVisibility = false;
-  this->EditorSliceIntersectionVisibility = false;
+  this->EditorVisibility = true;
+  this->EditorSliceIntersectionVisibility = true;
   this->EditorTranslationEnabled = true;
   this->EditorRotationEnabled = true;
   this->EditorScalingEnabled = false;
