@@ -44,6 +44,50 @@ class VTK_MRML_EXPORT vtkMRMLTransformDisplayNode : public vtkMRMLDisplayNode
   vtkTypeMacro ( vtkMRMLTransformDisplayNode,vtkMRMLDisplayNode );
   void PrintSelf ( ostream& os, vtkIndent indent ) override;
 
+  /// Get name of the default interaction context (typically the mouse)
+  static const std::string GetDefaultContextName() { return ""; };
+  /// Active component (that the mouse or other interaction context is hovered over).
+  /// This property is computed on-the-fly and saved to file.
+  /// \param context Name of the interaction context. By default it is empty string, meaning mouse.
+  ///   Additional devices, such as virtual reality controllers can specify additional context names.
+  ///   This mechanism allows interacting with multiple markups at the same time (user can grab
+  ///   different markup points with each controller at the same time).
+  int GetActiveComponentType(std::string context = vtkMRMLTransformDisplayNode::GetDefaultContextName());
+  enum ComponentType
+  {
+    ComponentNone = 0,
+    ComponentRotationHandle,
+    ComponentTranslationHandle,
+    ComponentScaleHandle,
+    Component_Last
+  };
+  struct ComponentInfo
+  {
+    ComponentInfo()
+    {
+      this->Type = ComponentNone;
+      this->Index = -1;
+    }
+    int Type;
+    int Index;
+  };
+  /// Index of active component (that the mouse or other interaction context is hovered over).
+ /// This property is computed on-the-fly and saved to file.
+ /// \param context Name of the interaction context. By default it is empty string, meaning mouse
+  int GetActiveComponentIndex(std::string context = vtkMRMLTransformDisplayNode::GetDefaultContextName());
+
+  /// Set active component type and index for interaction context (empty by default, meaning mouse)
+  void SetActiveComponent(int componentType, int componentIndex,
+    std::string context = vtkMRMLTransformDisplayNode::GetDefaultContextName());
+
+  /// Query if there is an active component for any interaction context
+  bool HasActiveComponent();
+
+  /// Get list of interaction context names that have active components
+  /// \return List of interaction context names that have active components
+  std::vector<std::string> GetActiveComponentInteractionContexts();
+
+
   enum VisualizationModes
     {
     VIS_MODE_GLYPH,
@@ -182,6 +226,8 @@ class VTK_MRML_EXPORT vtkMRMLTransformDisplayNode : public vtkMRMLDisplayNode
   vtkGetMacro(EditorScalingEnabled, bool);
   vtkSetMacro(EditorScalingEnabled, bool);
   vtkBooleanMacro(EditorScalingEnabled, bool);
+  void SetHandleVisibility(int handleType, bool visibility);
+  bool GetHandleVisibility(int handleType);
 
   /// Ask the editor to recompute its bounds by invoking the
   /// TransformUpdateEditorBoundsEvent event.
@@ -241,7 +287,9 @@ protected:
   bool EditorRotationEnabled;
   bool EditorScalingEnabled;
 
- protected:
+  std::map<std::string, ComponentInfo> ActiveComponents;
+
+protected:
   vtkMRMLTransformDisplayNode ( );
   ~vtkMRMLTransformDisplayNode ( ) override;
   vtkMRMLTransformDisplayNode ( const vtkMRMLTransformDisplayNode& );

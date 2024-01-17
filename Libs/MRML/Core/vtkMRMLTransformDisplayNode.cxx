@@ -96,6 +96,10 @@ vtkMRMLTransformDisplayNode::vtkMRMLTransformDisplayNode()
   this->EditorRotationEnabled = true;
   this->EditorScalingEnabled = false;
 
+  // Set active component defaults for mouse (identified by empty string)
+  this->ActiveComponents[GetDefaultContextName()] = ComponentInfo();
+
+
   vtkNew<vtkIntArray> regionModifiedEvents;
   regionModifiedEvents->InsertNextValue(vtkCommand::ModifiedEvent);
   regionModifiedEvents->InsertNextValue(vtkMRMLTransformableNode::TransformModifiedEvent);
@@ -280,6 +284,84 @@ void vtkMRMLTransformDisplayNode::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << " EditorTranslationEnabled=\""<< this->EditorTranslationEnabled << "\n";
   os << indent << " EditorRotationEnabled=\"" << this->EditorRotationEnabled << "\n";
   os << indent << " EditorScalingEnabled=\""<< this->EditorScalingEnabled << "\n";
+  {
+    os << indent << "ActiveComponents:";
+    for (std::map<std::string, ComponentInfo>::iterator it = this->ActiveComponents.begin(); it != this->ActiveComponents.end(); ++it)
+    {
+      os << indent << indent;
+      if (it->first.empty())
+      {
+        os << "(default)";
+      }
+      else
+      {
+        os << it->first;
+      }
+      os << ": " << it->second.Type << ", " << it->second.Index;
+    }
+    os << "\n";
+  }
+}
+
+int vtkMRMLTransformDisplayNode::GetActiveComponentType(std::string context)
+{
+  if (this->ActiveComponents.find(context) == this->ActiveComponents.end())
+  {
+    vtkErrorMacro("GetActiveComponentType: No interaction context with identifier '" << context << "' was found");
+    return ComponentNone;
+  }
+
+  return this->ActiveComponents[context].Type;
+}
+
+int vtkMRMLTransformDisplayNode::GetActiveComponentIndex(std::string context)
+{
+  if (this->ActiveComponents.find(context) == this->ActiveComponents.end())
+  {
+    vtkErrorMacro("GetActiveComponentIndex: No interaction context with identifier '" << context << "' was found");
+    return -1;
+  }
+
+  return this->ActiveComponents[context].Index;
+}
+
+void vtkMRMLTransformDisplayNode::SetActiveComponent(int componentType, int componentIndex, std::string context)
+{
+  if (this->ActiveComponents.find(context) != this->ActiveComponents.end()
+    && this->ActiveComponents[context].Type == componentType
+    && this->ActiveComponents[context].Index == componentIndex)
+  {
+    // no change
+    return;
+  }
+  this->ActiveComponents[context].Index = componentIndex;
+  this->ActiveComponents[context].Type = componentType;
+  this->Modified();
+}
+
+bool vtkMRMLTransformDisplayNode::HasActiveComponent()
+{
+  for (std::map<std::string, ComponentInfo>::iterator it = this->ActiveComponents.begin(); it != this->ActiveComponents.end(); ++it)
+  {
+    if (it->second.Type != ComponentNone)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::vector<std::string> vtkMRMLTransformDisplayNode::GetActiveComponentInteractionContexts()
+{
+  std::vector<std::string> interactionContextVector;
+  for (std::map<std::string, ComponentInfo>::iterator it = this->ActiveComponents.begin(); it != this->ActiveComponents.end(); ++it)
+  {
+    if (it->second.Type != ComponentNone)
+    {
+      interactionContextVector.push_back(it->first);
+    }
+  }
+  return interactionContextVector;
 }
 
 //---------------------------------------------------------------------------
@@ -590,6 +672,41 @@ void vtkMRMLTransformDisplayNode::SetColorMap(vtkColorTransferFunction* newColor
     vtkErrorMacro("vtkMRMLTransformDisplayNode::SetColorMap failed: could not create default color node");
     }
   this->EndModify(oldModified);
+}
+
+void vtkMRMLTransformDisplayNode::SetHandleVisibility(int componentType, bool visibility)
+{
+  switch (componentType)
+  {
+  case ComponentTranslationHandle:
+    this->SetEditorTranslationEnabled(visibility);
+    break;
+  case ComponentRotationHandle:
+    this->SetEditorRotationEnabled(visibility);
+    break;
+  case ComponentScaleHandle:
+    this->SetEditorScalingEnabled(visibility);
+    break;
+  default:
+    vtkErrorMacro("Unknown handle type");
+    break;
+  }
+}
+
+bool vtkMRMLTransformDisplayNode::GetHandleVisibility(int componentType)
+{
+  switch (componentType)
+  {
+  case ComponentTranslationHandle:
+    return this->GetEditorTranslationEnabled();
+  case ComponentRotationHandle:
+    return this->GetEditorRotationEnabled();
+  case ComponentScaleHandle:
+    return this->GetEditorScalingEnabled();
+  default:
+    vtkErrorMacro("Unknown handle type");
+  }
+  return false;
 }
 
 //----------------------------------------------------------------------------
