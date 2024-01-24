@@ -415,7 +415,7 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::AddDisplayNode(vt
   // There should not be a widget for the new node
   if (this->GetWidget(displayNode) != nullptr)
   {
-    vtkDebugWithObjectMacro(displayNodeIt,"vtkMRMLMarkupsDisplayableManager2D: A widget is already associated to this node");
+    vtkDebugWithObjectMacro(displayNodeIt->first,"vtkMRMLTransformDisplayableManager3D: A widget is already associated to this node");
     return;
   }
 
@@ -423,7 +423,7 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::AddDisplayNode(vt
   if (displayNode->GetDisplayableNode())
   {
     // Prevent potential recursive calls during UpdateFromMRML call before the new widget is stored
-    // in MarkupsDisplayNodesToWidgets.
+    // in TransformDisplayNodesToWidgets.
     wasModified = displayNode->GetDisplayableNode()->StartModify();
   }
 
@@ -606,10 +606,10 @@ vtkSlicerLinearTransformWidget* vtkMRMLLinearTransformsDisplayableManager3D::vtk
 vtkSlicerLinearTransformWidget* vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::CreateWidget(
   vtkMRMLTransformDisplayNode* displayNode)
 {
-  vtkMRMLTransformNode* markupsNode = vtkMRMLTransformNode::SafeDownCast(displayNode->GetDisplayableNode());
-  if (!markupsNode)
+  vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast(displayNode->GetDisplayableNode());
+  if (!transformNode)
   {
-    vtkErrorWithObjectMacro(markupsNode, "CreateWidget: invalid Markups logic.");
+    vtkErrorWithObjectMacro(transformNode, "CreateWidget: invalid Transform logic.");
     return nullptr;
   }
 
@@ -618,7 +618,7 @@ vtkSlicerLinearTransformWidget* vtkMRMLLinearTransformsDisplayableManager3D::vtk
 
   if (!widget)
   {
-    vtkErrorWithObjectMacro(widget,"vtkMRMLMarkupsDisplayableManager::CreateWidget failed: cannot instantiate widget for LinearTransform " );
+    vtkErrorWithObjectMacro(widget,"vtkMRMLTransformDisplayableManager::CreateWidget failed: cannot instantiate widget for LinearTransform " );
     return nullptr;
   }
 

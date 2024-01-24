@@ -35,7 +35,7 @@
  * embedded in a scene like any other vtkActor.
 *
  * @sa
- * vtkSlicerMarkupsWidgetRepresentation vtkMRMLAbstractWidget vtkPointPlacer
+ * vtkSlicerTransformWidgetRepresentation vtkMRMLAbstractWidget vtkPointPlacer
 */
 
 #ifndef vtkSlicerLinearTransformWidgetRepresentation_h

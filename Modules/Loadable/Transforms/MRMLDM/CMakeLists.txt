@@ -9,8 +9,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
   ${vtkSlicer${MODULE_NAME}ModuleLogic_BINARY_DIR}
   ${vtkSlicer${MODULE_NAME}ModuleMRML_SOURCE_DIR}
   ${vtkSlicer${MODULE_NAME}ModuleMRML_BINARY_DIR}
-  ${vtkSlicer${MODULE_NAME}ModuleVTKWidgets_SOURCE_DIR}
-  ${vtkSlicer${MODULE_NAME}ModuleVTKWidgets_BINARY_DIR}
+  ${vtkSlicerTransformsModuleVTKWidgets_SOURCE_DIR}
+  ${vtkSlicerTransformsModuleVTKWidgets_BINARY_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   )
 
@@ -36,7 +36,7 @@ set(${KIT}_SRCS
 set(${KIT}_TARGET_LIBRARIES
   ${MRML_LIBRARIES}
   vtkSlicerTransformsModuleLogic
-  vtkSlicer${MODULE_NAME}ModuleVTKWidgets
+  vtkSlicerTransformsModuleVTKWidgets
   )
 
 #-----------------------------------------------------------------------------
