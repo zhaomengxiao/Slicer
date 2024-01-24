@@ -246,6 +246,7 @@ void vtkSlicerLinearTransformWidgetRepresentation::UpdateFromMRMLInternal(
 //----------------------------------------------------------------------
 void vtkSlicerLinearTransformWidgetRepresentation::UpdateInteractionPipeline()
 {
+  vtkWarningMacro("Debug!!!!,vtkSlicerLinearTransformWidgetRepresentation,UpdateInteractionPipeline start");
   vtkMRMLTransformNode* transformNode = this->GetTransformNode();
   if (!transformNode)
     {
@@ -259,7 +260,7 @@ void vtkSlicerLinearTransformWidgetRepresentation::UpdateInteractionPipeline()
     return;
     }
 
-  this->InteractionPipeline->Actor->SetVisibility(this->TransformDisplayNode->GetEditorVisibility());
+  this->InteractionPipeline->Actor->SetVisibility(/*this->TransformDisplayNode->GetEditorVisibility()*/true);
   //todo debug
   if (this->TransformDisplayNode->GetEditorVisibility())
   {
@@ -277,6 +278,7 @@ void vtkSlicerLinearTransformWidgetRepresentation::UpdateInteractionPipeline()
   transformNode->GetMatrixTransformToWorld(matrix);
   handleToWorldTransform->SetMatrix(matrix);
   this->InteractionPipeline->HandleToWorldTransform->DeepCopy(handleToWorldTransform);
+  vtkWarningMacro("Debug!!!!,vtkSlicerLinearTransformWidgetRepresentation,UpdateInteractionPipeline end");
 }
 
 

@@ -50,6 +50,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 
+#include "vtkMRMLInteractionNode.h"
 #include "vtkSlicerLinearTransformWidget.h"
 #include "vtkSlicerLinearTransformWidgetRepresentation.h"
 
@@ -663,7 +664,7 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal
     return;
     }
 
-
+  
 
 }
 
@@ -813,12 +814,44 @@ void vtkMRMLLinearTransformsDisplayableManager3D::ProcessMRMLNodesEvents(vtkObje
 
   vtkMRMLTransformNode* displayableNode = vtkMRMLTransformNode::SafeDownCast(caller);
   vtkMRMLTransformDisplayNode* displayNode = vtkMRMLTransformDisplayNode::SafeDownCast(caller);
+  vtkMRMLInteractionNode* interactionNode = vtkMRMLInteractionNode::SafeDownCast(caller);
 
   if ( displayableNode )
     {
     vtkMRMLNode* callDataNode = reinterpret_cast<vtkMRMLDisplayNode *> (callData);
     displayNode = vtkMRMLTransformDisplayNode::SafeDownCast(callDataNode);
+   
+    //new update
+    bool renderRequested = false;
 
+    for (int displayNodeIndex = 0; displayNodeIndex < displayableNode->GetNumberOfDisplayNodes(); displayNodeIndex++)
+    {
+      vtkMRMLTransformDisplayNode* displayNode_1 = vtkMRMLTransformDisplayNode::SafeDownCast(displayableNode->GetNthDisplayNode(displayNodeIndex));
+      vtkSlicerLinearTransformWidget* widget = this->Internal->GetWidget(displayNode_1);
+      if (!widget)
+      {
+        // if a new display node is added or display node view node IDs are changed then we may need to create a new widget
+        this->Internal->AddDisplayNode(displayableNode,displayNode_1);
+        widget = this->Internal->GetWidget(displayNode);
+      }
+      if (!widget)
+      {
+        continue;
+      }
+      widget->UpdateFromMRML(displayNode_1, event, callData);
+      if (widget->GetNeedToRender())
+      {
+        renderRequested = true;
+        widget->NeedToRenderOff();
+      }
+    }
+
+    if (renderRequested)
+    {
+      this->RequestRender();
+    }
+
+    //old update
     if ( displayNode && (event == vtkMRMLDisplayableNode::DisplayModifiedEvent) )
       {
       this->Internal->UpdateDisplayNode(displayNode);
@@ -839,10 +872,29 @@ void vtkMRMLLinearTransformsDisplayableManager3D::ProcessMRMLNodesEvents(vtkObje
       this->RequestRender();
       }
     }
-  else
+  else if (interactionNode)
+  {
+    if (event == vtkMRMLInteractionNode::InteractionModeChangedEvent)
     {
-    this->Superclass::ProcessMRMLNodesEvents(caller, event, callData);
+      // loop through all widgets and update the widget status
+      for (vtkInternal::DisplayNodeToWidgetIt widgetIterator = this->Internal->TransformDisplayNodesToWidgets.begin();
+        widgetIterator != this->Internal->TransformDisplayNodesToWidgets.end(); ++widgetIterator)
+      {
+        vtkSlicerLinearTransformWidget* widget = widgetIterator->second;
+        if (!widget)
+        {
+          continue;
+        }
+        vtkMRMLInteractionEventData* eventData = reinterpret_cast<vtkMRMLInteractionEventData*>(callData);
+        widget->Leave(eventData);
+      }
     }
+  }
+
+  else
+  {
+    this->Superclass::ProcessMRMLNodesEvents(caller, event, callData);
+  }
 }
 
 //---------------------------------------------------------------------------
