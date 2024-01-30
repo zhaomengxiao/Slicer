@@ -109,7 +109,7 @@ protected:
   void EndWidgetInteraction();
 
   virtual void TranslateWidget(double eventPos[2]);
-  virtual void ScaleWidget(double eventPos[2]);
+  //virtual void ScaleWidget(double eventPos[2]);
   virtual void RotateWidget(double eventPos[2]);
 
   // Get accurate world position.

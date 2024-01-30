@@ -125,6 +125,7 @@ public:
   vtkInternal(vtkMRMLLinearTransformsDisplayableManager3D* external);
   ~vtkInternal();
 
+  vtkSlicerLinearTransformWidgetRepresentation* coneRep;
   struct Pipeline
     {
     vtkSmartPointer<vtkBoxWidget2> Widget;
@@ -446,8 +447,15 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::AddDisplayNode(vt
     displayNode->GetDisplayableNode()->EndModify(wasModified);
   }
 
-  /*this->RequestRender();*///todo update?
+  /*this->RequestRender();#1#//todo update?
+
+  /*coneRep = vtkSlicerLinearTransformWidgetRepresentation::New();
+  coneRep->SetupPipline();
+  this->External->GetRenderer()->AddViewProp(coneRep);*/
+
+
   vtkWarningWithObjectMacro(newWidget,"Debug !!!!!!!!!!!");
+  //coneRep->RenderOpaqueGeometry(this->External->GetRenderer());
 }
 
 //---------------------------------------------------------------------------
@@ -663,8 +671,6 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal
     this->UpdateWidgetFromNode(displayNode, transformNode, pipeline);
     return;
     }
-
-  
 
 }
 

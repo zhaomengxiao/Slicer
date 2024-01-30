@@ -24,8 +24,6 @@
 #include "vtkMRMLSliceCompositeNode.h"
 #include "vtkMRMLSliceLogic.h"
 #include "vtkSlicerLinearTransformWidgetRepresentation.h"
-#include "vtkSlicerLinearTransformWidgetRepresentation2D.h"
-#include "vtkSlicerLinearTransformWidgetRepresentation3D.h"
 
 // VTK includes
 #include <vtkCamera.h>
@@ -151,7 +149,7 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetTranslateStart(vtkMRMLInteract
 //-------------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::ProcessMouseMove(vtkMRMLInteractionEventData* eventData)
 {
-  vtkMRMLTransformNode* transformNode = this->GetTransformNode();
+  /*vtkMRMLTransformNode* transformNode = this->GetTransformNode();
   vtkSlicerLinearTransformWidgetRepresentation* rep = this->GetTransformRepresentation();
   if (!rep || !transformNode || !eventData)
     {
@@ -222,7 +220,7 @@ bool vtkSlicerLinearTransformWidget::ProcessMouseMove(vtkMRMLInteractionEventDat
 
     this->LastEventPosition[0] = eventPos[0];
     this->LastEventPosition[1] = eventPos[1];
-    }
+    }*/
 
   return true;
 }
@@ -338,69 +336,63 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetJumpCursor(vtkMRMLInteractionE
 bool vtkSlicerLinearTransformWidget::ConvertDisplayPositionToWorld(const int displayPos[2],
   double worldPos[3], double worldOrientationMatrix[9], double* refWorldPos/*=nullptr*/)
 {
-  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation3D* rep3d = vtkSlicerLinearTransformWidgetRepresentation3D::SafeDownCast(this->WidgetRep);
+  
+  vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
   double doubleDisplayPos[3] = { static_cast<double>(displayPos[0]), static_cast<double>(displayPos[1]), 0.0 };
-  if (rep2d)
-    {
-    // 2D view
-    rep2d->GetSliceToWorldCoordinates(doubleDisplayPos, worldPos);
-    return true;
-    }
-  else if (rep3d)
-    {
-    // 3D view
-    bool preferPickOnSurface = true;
-    /*if (refWorldPos != nullptr)
-      {
-      // If reference position is provided then we may use that instead of picking on visible surface.
-      vtkMRMLTransformDisplayNode* transformDisplayNode = this->GetTransformDisplayNode();
-      if (transformDisplayNode)
-        {
-        preferPickOnSurface = (transformDisplayNode->GetSnapMode() == vtkMRMLTransformDisplayNode::SnapModeToVisibleSurface);
-        }
-      }*/
-    if (preferPickOnSurface)
-      {
-      // SnapModeToVisibleSurface
-      // Try to pick on surface and pick on camera plane if nothing is found.
-      if (rep3d->AccuratePick(displayPos[0], displayPos[1], worldPos))
-        {
-        return true;
-        }
-      if (refWorldPos)
-        {
-        // Reference position is available (most likely, moving the point).
-        return (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
-          doubleDisplayPos, refWorldPos, worldPos, worldOrientationMatrix));
-        }
-      }
-    else
-      {
-      // SnapModeUnconstrained
-      // Move the point relative to reference position, not restricted to surfaces if possible.
-      if (refWorldPos)
-        {
-        // Reference position is available (most likely, moving the point).
-        return (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
-          doubleDisplayPos, refWorldPos, worldPos, worldOrientationMatrix));
-        }
-      else
-        {
-        // Reference position is unavailable (e.g., not moving of an existing point but first placement)
-        // Even if the constraining on the surface is no preferred, it is still better to
-        // place it on a visible surface in 3D views rather on the .
-        if (rep3d->AccuratePick(displayPos[0], displayPos[1], worldPos))
-          {
-          return true;
-          }
-        }
-      }
-    // Last resort: place a point on the camera plane
-    // (no reference position is available and no surface is visible there)
-    return (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
-      doubleDisplayPos, worldPos, worldOrientationMatrix));
-    }
+  //if (rep3d)
+  //  {
+  //  // 3D view
+  //  bool preferPickOnSurface = true;
+  //  /*if (refWorldPos != nullptr)
+  //    {
+  //    // If reference position is provided then we may use that instead of picking on visible surface.
+  //    vtkMRMLTransformDisplayNode* transformDisplayNode = this->GetTransformDisplayNode();
+  //    if (transformDisplayNode)
+  //      {
+  //      preferPickOnSurface = (transformDisplayNode->GetSnapMode() == vtkMRMLTransformDisplayNode::SnapModeToVisibleSurface);
+  //      }
+  //    }*/
+  //  if (preferPickOnSurface)
+  //    {
+  //    // SnapModeToVisibleSurface
+  //    // Try to pick on surface and pick on camera plane if nothing is found.
+  //    if (rep3d->AccuratePick(displayPos[0], displayPos[1], worldPos))
+  //      {
+  //      return true;
+  //      }
+  //    if (refWorldPos)
+  //      {
+  //      // Reference position is available (most likely, moving the point).
+  //      return (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
+  //        doubleDisplayPos, refWorldPos, worldPos, worldOrientationMatrix));
+  //      }
+  //    }
+  //  else
+  //    {
+  //    // SnapModeUnconstrained
+  //    // Move the point relative to reference position, not restricted to surfaces if possible.
+  //    if (refWorldPos)
+  //      {
+  //      // Reference position is available (most likely, moving the point).
+  //      return (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
+  //        doubleDisplayPos, refWorldPos, worldPos, worldOrientationMatrix));
+  //      }
+  //    else
+  //      {
+  //      // Reference position is unavailable (e.g., not moving of an existing point but first placement)
+  //      // Even if the constraining on the surface is no preferred, it is still better to
+  //      // place it on a visible surface in 3D views rather on the .
+  //      if (rep3d->AccuratePick(displayPos[0], displayPos[1], worldPos))
+  //        {
+  //        return true;
+  //        }
+  //      }
+  //    }
+  //  // Last resort: place a point on the camera plane
+  //  // (no reference position is available and no surface is visible there)
+  //  return (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
+  //    doubleDisplayPos, worldPos, worldOrientationMatrix));
+  //  }
   return false;
 }
 
@@ -414,15 +406,9 @@ void vtkSlicerLinearTransformWidget::CreateDefaultRepresentation(vtkMRMLTransfor
   vtkMRMLAbstractViewNode* viewNode, vtkRenderer* renderer)
 {
   vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation> rep = nullptr;
-  if (vtkMRMLSliceNode::SafeDownCast(viewNode))
-  {
-    rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation2D>::New();
-    vtkSlicerLinearTransformWidgetRepresentation2D::New();
-  }
-  else
-  {
-    rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation3D>::New();
-  }
+  
+  rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation>::New();
+  
   this->SetRenderer(renderer);
   this->SetRepresentation(rep);
   rep->SetViewNode(viewNode);
@@ -445,7 +431,7 @@ vtkSlicerLinearTransformWidget* vtkSlicerLinearTransformWidget::CreateInstance()
 //-----------------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::CanProcessInteractionEvent(vtkMRMLInteractionEventData* eventData, double &distance2)
 {
-  unsigned long widgetEvent = this->TranslateInteractionEventToWidgetEvent(eventData);
+  /*unsigned long widgetEvent = this->TranslateInteractionEventToWidgetEvent(eventData);
   if (widgetEvent == WidgetEventNone)
     {
     // If this event is not recognized then give a chance to process it as a click event.
@@ -474,7 +460,7 @@ bool vtkSlicerLinearTransformWidget::CanProcessInteractionEvent(vtkMRMLInteracti
     {
     return false;
     }
-  distance2 = closestDistance2;
+  distance2 = closestDistance2;*/
   return true;
 }
 
@@ -719,7 +705,7 @@ void vtkSlicerLinearTransformWidget::EndWidgetInteraction()
 //----------------------------------------------------------------------
 void vtkSlicerLinearTransformWidget::TranslateWidget(double eventPos[2])
 {
-  vtkMRMLTransformNode* transformNode = this->GetTransformNode();
+  /*vtkMRMLTransformNode* transformNode = this->GetTransformNode();
   if (!transformNode)
     {
     return;
@@ -730,29 +716,16 @@ void vtkSlicerLinearTransformWidget::TranslateWidget(double eventPos[2])
   double orientation_World[9] = { 0.0 };
 
   vtkSlicerLinearTransformWidgetRepresentation* rep = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation3D* rep3d = vtkSlicerLinearTransformWidgetRepresentation3D::SafeDownCast(this->WidgetRep);
-  if (rep2d)
-    {
-    // 2D view
-    double eventPos_Slice[3] = { 0. };
-    eventPos_Slice[0] = this->LastEventPosition[0];
-    eventPos_Slice[1] = this->LastEventPosition[1];
-    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, lastEventPos_World);
-
-    eventPos_Slice[0] = eventPos[0];
-    eventPos_Slice[1] = eventPos[1];
-    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, eventPos_World);
-    }
-  else if (rep3d)
+  
+  if (rep)
     {
     // 3D view
-    if (!rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
+    if (!rep->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
       this->LastEventPosition, lastEventPos_World, orientation_World))
       {
       return;
       }
-    if (!rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
+    if (!rep->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
       eventPos, lastEventPos_World, eventPos_World, orientation_World))
       {
       return;
@@ -829,22 +802,8 @@ void vtkSlicerLinearTransformWidget::ScaleWidget(double eventPos[2])
   double ref[3] = { 0. };
   double worldPos[3], worldOrient[9];
 
-  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation3D* rep3d = vtkSlicerLinearTransformWidgetRepresentation3D::SafeDownCast(this->WidgetRep);
-  if (rep2d)
-    {
-    double slicePos[3] = { 0. };
-    slicePos[0] = this->LastEventPosition[0];
-    slicePos[1] = this->LastEventPosition[1];
-    rep2d->GetSliceToWorldCoordinates(slicePos, ref);
-
-    slicePos[0] = eventPos[0];
-    slicePos[1] = eventPos[1];
-    rep2d->GetSliceToWorldCoordinates(slicePos, worldPos);
-
-    rep2d->GetTransformationReferencePoint(center);
-    }
-  else if (rep3d)
+  vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
+  if (rep3d)
     {
     double displayPos[2] = { 0. };
     displayPos[0] = this->LastEventPosition[0];
@@ -883,6 +842,7 @@ void vtkSlicerLinearTransformWidget::ScaleWidget(double eventPos[2])
     }
 
   double ratio = sqrt(d2 / r2);
+  */
 
   
   //todo apply ratio
@@ -891,7 +851,7 @@ void vtkSlicerLinearTransformWidget::ScaleWidget(double eventPos[2])
 //----------------------------------------------------------------------
 void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
 {
-  vtkMRMLTransformNode* transformNode = this->GetTransformNode();
+  /*vtkMRMLTransformNode* transformNode = this->GetTransformNode();
   if (!transformNode)
     {
     return;
@@ -902,24 +862,8 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
   double orientation_World[9] = { 0. };
   double eventPos_Display[2] = { 0. };
 
-  vtkSlicerLinearTransformWidgetRepresentation* rep = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation3D* rep3d = vtkSlicerLinearTransformWidgetRepresentation3D::SafeDownCast(this->WidgetRep);
-  if (rep2d)
-    {
-    double eventPos_Slice[3] = { 0. };
-    eventPos_Slice[0] = this->LastEventPosition[0];
-    eventPos_Slice[1] = this->LastEventPosition[1];
-    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, lastEventPos_World);
-
-    eventPos_Slice[0] = eventPos[0];
-    eventPos_Slice[1] = eventPos[1];
-    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, eventPos_World);
-
-    eventPos_Display[0] = eventPos_Slice[0];
-    eventPos_Display[1] = eventPos_Slice[1];
-    }
-  else if (rep3d)
+  vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
+  if (rep3d)
     {
     if (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
       this->LastEventPosition, lastEventPos_World, orientation_World))
@@ -943,7 +887,7 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
     }
 
   double origin_World[3] = { 0.0 };
-  rep->GetInteractionHandleOriginWorld(origin_World);
+  rep3d->GetInteractionHandleOriginWorld(origin_World);
 
   double epsilon = 1e-5;
   double d2 = vtkMath::Distance2BetweenPoints(eventPos_World, origin_World);
@@ -974,9 +918,9 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
       return;
       }
 
-    rep->GetInteractionHandleAxisWorld(type, index, rotationAxis_World); // Axis of rotation
+    rep3d->GetInteractionHandleAxisWorld(type, index, rotationAxis_World); // Axis of rotation
     double origin_World[3] = { 0.0, 0.0, 0.0 };
-    rep->GetInteractionHandleOriginWorld(origin_World);
+    rep3d->GetInteractionHandleOriginWorld(origin_World);
 
     double lastEventPositionOnAxisPlane_World[3] = { 0.0, 0.0, 0.0 };
     if (!this->GetIntersectionOnAxisPlane(
@@ -1010,7 +954,7 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
   /*vtkNew<vtkTransform> rotateTransform;
   rotateTransform->Translate(origin_World);
   rotateTransform->RotateWXYZ(angle, rotationAxis_World);
-  rotateTransform->Translate(-origin_World[0], -origin_World[1], -origin_World[2]);*/
+  rotateTransform->Translate(-origin_World[0], -origin_World[1], -origin_World[2]);#1#
 
   MRMLNodeModifyBlocker blocker(transformNode);
 
@@ -1037,20 +981,18 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
 
   toParent->Concatenate(T_WorldToNode->GetLinearInverse());
 
-  transformNode->SetMatrixTransformToParent(toParent->GetMatrix());
+  transformNode->SetMatrixTransformToParent(toParent->GetMatrix());*/
 }
 
 //----------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::GetIntersectionOnAxisPlane(int type, int index, const double input_Display[2], double outputIntersection_World[3])
 {
-  vtkSlicerLinearTransformWidgetRepresentation* rep = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation3D* rep3d = vtkSlicerLinearTransformWidgetRepresentation3D::SafeDownCast(this->WidgetRep);
+  /*vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
 
   double rotationAxis[3] = { 0 };
-  rep->GetInteractionHandleAxisWorld(type, index, rotationAxis); // Axis of rotation
+  rep3d->GetInteractionHandleAxisWorld(type, index, rotationAxis); // Axis of rotation
   double origin[3] = { 0, 0, 0 };
-  rep->GetInteractionHandleOriginWorld(origin);
+  rep3d->GetInteractionHandleOriginWorld(origin);
 
   vtkNew<vtkPlane> axisPlaneWorld;
   axisPlaneWorld->SetNormal(rotationAxis);
@@ -1112,35 +1054,21 @@ bool vtkSlicerLinearTransformWidget::GetIntersectionOnAxisPlane(int type, int in
       }
     vtkMath::Add(inputPoint0_World, projectionVector_World, inputPoint1_World);
     }
-  else if (rep2d)
-    {
-    double inputPoint0_Display[3] = { input_Display[0], input_Display[1], 0.0 };
-    double inputPoint1_Display[3] = { input_Display[0], input_Display[1], 1.0 };
-
-    vtkNew<vtkTransform> displayToWorldTransform;
-    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(rep2d->GetViewNode());
-    vtkMatrix4x4* xyToRASMatrix = sliceNode->GetXYToRAS();
-    displayToWorldTransform->SetMatrix(xyToRASMatrix);
-    displayToWorldTransform->TransformPoint(inputPoint0_Display, inputPoint0_World);
-    displayToWorldTransform->TransformPoint(inputPoint1_Display, inputPoint1_World);
-    }
 
   double t = 0.0; // not used
-  axisPlaneWorld->IntersectWithLine(inputPoint0_World, inputPoint1_World, t, outputIntersection_World);
+  axisPlaneWorld->IntersectWithLine(inputPoint0_World, inputPoint1_World, t, outputIntersection_World);*/
   return true;
 }
 
 //----------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::GetClosestPointOnInteractionAxis(int type, int index, const double input_Display[2], double outputClosestPoint_World[3])
 {
-  vtkSlicerLinearTransformWidgetRepresentation* rep = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
-  vtkSlicerLinearTransformWidgetRepresentation3D* rep3d = vtkSlicerLinearTransformWidgetRepresentation3D::SafeDownCast(this->WidgetRep);
+  /*vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
 
   double translationAxis_World[3] = { 0 };
-  rep->GetInteractionHandleAxisWorld(type, index, translationAxis_World); // Axis of rotation
+  rep3d->GetInteractionHandleAxisWorld(type, index, translationAxis_World); // Axis of rotation
   double origin_World[3] = { 0, 0, 0 };
-  rep->GetInteractionHandleOriginWorld(origin_World);
+  rep3d->GetInteractionHandleOriginWorld(origin_World);
 
   double inputPoint0_World[3] = { 0.0, 0.0, 0.0 };
   double inputPoint1_World[3] = { 0.0, 0.0, 1.0 };
@@ -1199,18 +1127,7 @@ bool vtkSlicerLinearTransformWidget::GetClosestPointOnInteractionAxis(int type, 
       }
     vtkMath::Add(inputPoint0_World, projectionVector_World, inputPoint1_World);
     }
-  else if (rep2d)
-    {
-    double inputPoint0_Display[3] = { input_Display[0], input_Display[1], 0.0 };
-    double inputPoint1_Display[3] = { input_Display[0], input_Display[1], 1.0 };
-
-    vtkNew<vtkTransform> displayToWorldTransform;
-    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(rep2d->GetViewNode());
-    vtkMatrix4x4* xyToRASMatrix = sliceNode->GetXYToRAS();
-    displayToWorldTransform->SetMatrix(xyToRASMatrix);
-    displayToWorldTransform->TransformPoint(inputPoint0_Display, inputPoint0_World);
-    displayToWorldTransform->TransformPoint(inputPoint1_Display, inputPoint1_World);
-    }
+  
   double t1; // not used
   double t2; // not used
   double closestPointNotUsed[3] = { 0 };
@@ -1218,6 +1135,7 @@ bool vtkSlicerLinearTransformWidget::GetClosestPointOnInteractionAxis(int type, 
   vtkMath::Add(origin_World, translationAxis_World, translationVectorPoint);
   vtkLine::DistanceBetweenLines(origin_World, translationVectorPoint,
     inputPoint0_World, inputPoint1_World, outputClosestPoint_World, closestPointNotUsed, t1, t2);
+  return true;*/
   return true;
 }
 

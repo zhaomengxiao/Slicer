@@ -12,10 +12,10 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicerLinearTransformWidgetRepresentation.cxx
   vtkSlicerLinearTransformWidgetRepresentation.h
-  vtkSlicerLinearTransformWidgetRepresentation3D.cxx
-  vtkSlicerLinearTransformWidgetRepresentation3D.h
-  vtkSlicerLinearTransformWidgetRepresentation2D.cxx
-  vtkSlicerLinearTransformWidgetRepresentation2D.h
+#  vtkSlicerLinearTransformWidgetRepresentation3D.cxx
+#  vtkSlicerLinearTransformWidgetRepresentation3D.h
+#  vtkSlicerLinearTransformWidgetRepresentation2D.cxx
+#  vtkSlicerLinearTransformWidgetRepresentation2D.h
   vtkSlicerLinearTransformWidget.cxx
   vtkSlicerLinearTransformWidget.h
   )
