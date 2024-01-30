@@ -46,6 +46,7 @@
 #include <vtkArcSource.h>
 #include <vtkArrowSource.h>
 #include <vtkConeSource.h>
+#include <vtkMRMLInteractionEventData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSphereSource.h>
 #include <vtkTensorGlyph.h>
@@ -77,8 +78,6 @@ public:
   void UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData = nullptr) override;
 
   void UpdateFromMRMLInternal(vtkMRMLNode* caller, unsigned long event, void* callData = nullptr);
-  void SetupPipline();
-  void UpdatePipline();
 
   /// Methods to make this class behave as a vtkProp.
   void GetActors(vtkPropCollection*) override;
@@ -93,32 +92,31 @@ public:
   virtual vtkMRMLTransformDisplayNode* GetTransformDisplayNode();
   virtual vtkMRMLTransformNode* GetTransformNode();
 
+  //for display, setup and update the composite actor
+  void SetupPipline();
+  void UpdatePipline();
+
   /// Get the axis for the handle specified by the index
   virtual void GetInteractionHandleAxisWorld(int type, int index, double axis[3]);
 
+  //for interaction
+  /// Return found component type (as vtkMRMLTransformDisplayNode::ComponentType).
+  /// closestDistance2 is the squared distance in display coordinates from the closest position where interaction is possible.
+  /// componentIndex returns index of the found component (e.g., if control point is found then control point index is returned).
+  virtual void CanInteract(vtkMRMLInteractionEventData* interactionEventData,
+    int& foundComponentType, int& foundComponentIndex, double& closestDistance2);
+
+  /// Check if interaction with the transformation handles is possible
+  virtual void CanInteractWithHandles(vtkMRMLInteractionEventData* interactionEventData,
+    int& foundComponentType, int& foundComponentIndex, double& closestDistance2);
+
 protected:
   vtkSlicerLinearTransformWidgetRepresentation();
-
   ~vtkSlicerLinearTransformWidgetRepresentation() override;
 
+  double GetViewScaleFactorAtPosition(double positionWorld[3], vtkMRMLInteractionEventData* interactionEventData = nullptr);
+
   virtual void SetTransformNode(vtkMRMLTransformNode *transformNode);
-
-  /*class VTK_SLICER_TRANSFORMS_MODULE_VTKWIDGETS_EXPORT TransformInteractorPipline_bak
-  {
-  public:
-    TransformInteractorPipline_bak(vtkMRMLAbstractWidgetRepresentation* representation);
-    virtual ~TransformInteractorPipline_bak();
-
-    vtkWeakPointer<vtkMRMLAbstractWidgetRepresentation> Representation;
-
-    vtkSmartPointer<vtkConeSource> ConeSouce;
-    vtkSmartPointer<vtkAppendPolyData> Append;
-    vtkSmartPointer<vtkPolyDataMapper> Mapper;
-    vtkSmartPointer<vtkActor> Actor;
-
-    virtual void InitializePipeline();
-
-  };*/
 
   class VTK_SLICER_TRANSFORMS_MODULE_VTKWIDGETS_EXPORT TransformInteractionPipeline
   {
@@ -176,7 +174,45 @@ protected:
     virtual void GetViewPlaneNormal(double normal[3]);
     /// Get the direction vector of the interaction handle from the interaction origin in world coordinates
     void GetInteractionHandleAxisWorld(int type, int index, double axisWorld[3]);
+    /// Get the interaction handle origin
+    virtual void GetInteractionHandleOriginWorld(double originWorld[3]);
+    struct HandleInfo
+    {
+      HandleInfo(int index, int componentType, double positionWorld[3], double positionLocal[3], double color[4])
+        : Index(index)
+        , ComponentType(componentType)
+      {
+        for (int i = 0; i < 3; ++i)
+        {
+          this->PositionWorld[i] = positionWorld[i];
+        }
+        this->PositionWorld[3] = 1.0;
+        for (int i = 0; i < 3; ++i)
+        {
+          this->PositionLocal[i] = positionLocal[i];
+        }
+        this->PositionLocal[3] = 1.0;
+        for (int i = 0; i < 4; ++i)
+        {
+          this->Color[i] = color[i];
+        }
+      }
+      int Index;
+      int ComponentType;
+      double PositionLocal[4];
+      double PositionWorld[4];
+      double Color[4];
+      bool IsVisible()
+      {
+        double epsilon = 0.001;
+        return this->Color[3] > epsilon;
+      }
+    };
+
+    /// Get the list of info for all interaction handles
+    virtual std::vector<HandleInfo> GetHandleInfoList();
   };
+  typedef std::vector<TransformInteractionPipeline::HandleInfo> HandleInfoList;
 
   vtkWeakPointer<vtkMRMLTransformDisplayNode> TransformDisplayNode;
   vtkWeakPointer<vtkMRMLTransformNode> TransformNode;

@@ -129,7 +129,7 @@ protected:
   virtual bool ProcessWidgetAction(vtkMRMLInteractionEventData* eventData);
   virtual bool ProcessWidgetTranslateStart(vtkMRMLInteractionEventData* eventData);
   virtual bool ProcessWidgetRotateStart(vtkMRMLInteractionEventData* eventData);
-  virtual bool ProcessWidgetScaleStart(vtkMRMLInteractionEventData* eventData);
+  //virtual bool ProcessWidgetScaleStart(vtkMRMLInteractionEventData* eventData);
   virtual bool ProcessEndMouseDrag(vtkMRMLInteractionEventData* eventData);
   virtual bool ProcessWidgetJumpCursor(vtkMRMLInteractionEventData* eventData);
 

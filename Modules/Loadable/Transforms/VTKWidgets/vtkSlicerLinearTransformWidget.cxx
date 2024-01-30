@@ -89,8 +89,8 @@ vtkSlicerLinearTransformWidget::vtkSlicerLinearTransformWidget()
   this->SetEventTranslation(WidgetStateOnRotationHandle, vtkMRMLInteractionEventData::RightButtonClickEvent, vtkEvent::NoModifier, WidgetEventMenu);
   this->SetEventTranslation(WidgetStateOnRotationHandle, vtkMRMLInteractionEventData::LeftButtonClickEvent, vtkEvent::NoModifier, WidgetEventJumpCursor);
 
-  this->SetEventTranslationClickAndDrag(WidgetStateOnScaleHandle, vtkCommand::LeftButtonPressEvent, vtkEvent::NoModifier,
-    WidgetStateScale, WidgetEventScaleStart, WidgetEventScaleEnd);
+  /*this->SetEventTranslationClickAndDrag(WidgetStateOnScaleHandle, vtkCommand::LeftButtonPressEvent, vtkEvent::NoModifier,
+    WidgetStateScale, WidgetEventScaleStart, WidgetEventScaleEnd);*/
   this->SetEventTranslation(WidgetStateOnScaleHandle, vtkMRMLInteractionEventData::RightButtonClickEvent, vtkEvent::NoModifier, WidgetEventMenu);
   this->SetEventTranslation(WidgetStateOnScaleHandle, vtkMRMLInteractionEventData::LeftButtonClickEvent, vtkEvent::NoModifier, WidgetEventJumpCursor);
 
@@ -121,7 +121,7 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetRotateStart(vtkMRMLInteraction
 }
 
 //-------------------------------------------------------------------------
-bool vtkSlicerLinearTransformWidget::ProcessWidgetScaleStart(vtkMRMLInteractionEventData* eventData)
+/*bool vtkSlicerLinearTransformWidget::ProcessWidgetScaleStart(vtkMRMLInteractionEventData* eventData)
 {
   if ((this->WidgetState != vtkSlicerLinearTransformWidget::WidgetStateOnWidget && this->WidgetState != vtkSlicerLinearTransformWidget::WidgetStateOnScaleHandle))
     {
@@ -131,7 +131,7 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetScaleStart(vtkMRMLInteractionE
   this->SetWidgetState(WidgetStateScale);
   this->StartWidgetInteraction(eventData);
   return true;
-}
+}*/
 
 //-------------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::ProcessWidgetTranslateStart(vtkMRMLInteractionEventData* eventData)
@@ -149,7 +149,7 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetTranslateStart(vtkMRMLInteract
 //-------------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::ProcessMouseMove(vtkMRMLInteractionEventData* eventData)
 {
-  /*vtkMRMLTransformNode* transformNode = this->GetTransformNode();
+  vtkMRMLTransformNode* transformNode = this->GetTransformNode();
   vtkSlicerLinearTransformWidgetRepresentation* rep = this->GetTransformRepresentation();
   if (!rep || !transformNode || !eventData)
     {
@@ -209,10 +209,10 @@ bool vtkSlicerLinearTransformWidget::ProcessMouseMove(vtkMRMLInteractionEventDat
       {
       this->TranslateWidget(eventPos);
       }
-    else if (state == WidgetStateScale)
+    /*else if (state == WidgetStateScale)
       {
       this->ScaleWidget(eventPos);
-      }
+      }*/
     else if (state == WidgetStateRotate)
       {
       this->RotateWidget(eventPos);
@@ -220,7 +220,7 @@ bool vtkSlicerLinearTransformWidget::ProcessMouseMove(vtkMRMLInteractionEventDat
 
     this->LastEventPosition[0] = eventPos[0];
     this->LastEventPosition[1] = eventPos[1];
-    }*/
+    }
 
   return true;
 }
@@ -431,7 +431,7 @@ vtkSlicerLinearTransformWidget* vtkSlicerLinearTransformWidget::CreateInstance()
 //-----------------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::CanProcessInteractionEvent(vtkMRMLInteractionEventData* eventData, double &distance2)
 {
-  /*unsigned long widgetEvent = this->TranslateInteractionEventToWidgetEvent(eventData);
+  unsigned long widgetEvent = this->TranslateInteractionEventToWidgetEvent(eventData);
   if (widgetEvent == WidgetEventNone)
     {
     // If this event is not recognized then give a chance to process it as a click event.
@@ -460,7 +460,7 @@ bool vtkSlicerLinearTransformWidget::CanProcessInteractionEvent(vtkMRMLInteracti
     {
     return false;
     }
-  distance2 = closestDistance2;*/
+  distance2 = closestDistance2;
   return true;
 }
 
@@ -608,9 +608,9 @@ bool vtkSlicerLinearTransformWidget::ProcessInteractionEvent(vtkMRMLInteractionE
     case WidgetEventRotateEnd:
       processedEvent = ProcessEndMouseDrag(eventData);
       break;
-    case WidgetEventScaleStart:
+    /*case WidgetEventScaleStart:
       processedEvent = ProcessWidgetScaleStart(eventData);
-      break;
+      break;*/
     case WidgetEventScaleEnd:
       processedEvent = ProcessEndMouseDrag(eventData);
       break;

@@ -25,6 +25,7 @@
 
 // MRMLDisplayableManager includes
 #include "vtkMRMLAbstractThreeDViewDisplayableManager.h"
+#include "vtkSlicerLinearTransformWidget.h"
 
 #include "vtkSlicerTransformsModuleMRMLDisplayableManagerExport.h"
 
@@ -46,6 +47,9 @@ public:
   vtkTypeMacro(vtkMRMLLinearTransformsDisplayableManager3D,vtkMRMLAbstractThreeDViewDisplayableManager);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
+  bool CanProcessInteractionEvent(vtkMRMLInteractionEventData* eventData, double& closestDistance2) override;
+  bool ProcessInteractionEvent(vtkMRMLInteractionEventData* eventData) override;
+
   /// \internal
   /// For testing purposes only:
   /// Return the widget associated with the given transform, if any.
@@ -55,6 +59,8 @@ protected:
 
   vtkMRMLLinearTransformsDisplayableManager3D();
   ~vtkMRMLLinearTransformsDisplayableManager3D() override;
+
+  vtkSlicerLinearTransformWidget* FindClosestWidget(vtkMRMLInteractionEventData* callData, double& closestDistance2);
 
   void UnobserveMRMLScene() override;
   void OnMRMLSceneNodeAdded(vtkMRMLNode* node) override;
@@ -74,10 +80,20 @@ protected:
 
   void ProcessWidgetsEvents(vtkObject* caller, unsigned long event, void* callData) override;
 
+
+  /// Accessor for internal flag that disables interactor style event processing
+  vtkGetMacro(DisableInteractorStyleEventsProcessing, int);
+
+  double LastClickWorldCoordinates[4];
+
+  vtkWeakPointer<vtkSlicerLinearTransformWidget> LastActiveWidget;
 private:
 
   vtkMRMLLinearTransformsDisplayableManager3D(const vtkMRMLLinearTransformsDisplayableManager3D&) = delete;
   void operator=(const vtkMRMLLinearTransformsDisplayableManager3D&) = delete;
+
+  int DisableInteractorStyleEventsProcessing;
+
 
   class vtkInternal;
   vtkInternal* Internal;
