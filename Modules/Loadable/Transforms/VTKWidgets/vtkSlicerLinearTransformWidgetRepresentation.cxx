@@ -28,6 +28,7 @@
 
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
+#include <vtkFocalPlanePointPlacer.h>
 #include <vtkLine.h>
 #include <vtkMRMLFolderDisplayNode.h>
 #include <vtkMRMLTransformNode.h>
@@ -51,10 +52,17 @@ vtkStandardNewMacro(vtkSlicerLinearTransformWidgetRepresentation);
 //----------------------------------------------------------------------
 vtkSlicerLinearTransformWidgetRepresentation::vtkSlicerLinearTransformWidgetRepresentation()
 {
+  /*this->ViewScaleFactorMmPerPixel = 1.0;
+  this->ScreenSizePixel = 1000;*/
+  this->PointPlacer = vtkSmartPointer<vtkFocalPlanePointPlacer>::New();
+  this->NeedToRender = false;
 
-  this->NeedToRender = true;
+  this->AlwaysOnTop = false;
 
-  this->AlwaysOnTop = true;
+  this->InteractionPipeline = nullptr;
+
+  this->AccuratePicker = vtkSmartPointer<vtkCellPicker>::New();
+  this->AccuratePicker->SetTolerance(.005);
 }
 
 //----------------------------------------------------------------------
@@ -72,6 +80,8 @@ vtkSlicerLinearTransformWidgetRepresentation::~vtkSlicerLinearTransformWidgetRep
     delete this->InteractionPipeline;
     this->InteractionPipeline = nullptr;
   }
+
+  this->PointPlacer = nullptr;
 }
 
 double vtkSlicerLinearTransformWidgetRepresentation::GetViewScaleFactorAtPosition(double positionWorld[3],
@@ -181,6 +191,19 @@ vtkMRMLTransformNode *vtkSlicerLinearTransformWidgetRepresentation::GetTransform
 void vtkSlicerLinearTransformWidgetRepresentation::GetInteractionHandleAxisWorld(int type, int index, double axis[3])
 {
   this->InteractionPipeline->GetInteractionHandleAxisWorld(type, index, axis);
+}
+
+void vtkSlicerLinearTransformWidgetRepresentation::GetInteractionHandleOriginWorld(double originWorld[3])
+{
+  {
+    if (!originWorld)
+    {
+      return;
+    }
+
+    double handleOrigin[3] = { 0,0,0 };
+    this->InteractionPipeline->HandleToWorldTransform->TransformPoint(handleOrigin, originWorld);
+  }
 }
 
 void vtkSlicerLinearTransformWidgetRepresentation::CanInteract(vtkMRMLInteractionEventData* interactionEventData,
@@ -348,6 +371,47 @@ void vtkSlicerLinearTransformWidgetRepresentation::CanInteractWithHandles(
       }
     }
   }
+}
+
+bool vtkSlicerLinearTransformWidgetRepresentation::AccuratePick(int x, int y, double pickPoint[3], double pickNormal[3])
+{
+  bool success = this->AccuratePicker->Pick(x, y, 0, this->Renderer);
+  if (pickNormal)
+  {
+    this->AccuratePicker->GetPickNormal(pickNormal);
+  }
+  if (!success)
+  {
+    return false;
+  }
+
+  vtkPoints* pickPositions = this->AccuratePicker->GetPickedPositions();
+  vtkIdType numberOfPickedPositions = pickPositions->GetNumberOfPoints();
+  if (numberOfPickedPositions < 1)
+  {
+    return false;
+  }
+
+  // There may be multiple picked positions, choose the one closest to the camera
+  double cameraPosition[3] = { 0,0,0 };
+  this->Renderer->GetActiveCamera()->GetPosition(cameraPosition);
+  pickPositions->GetPoint(0, pickPoint);
+  double minDist2 = vtkMath::Distance2BetweenPoints(pickPoint, cameraPosition);
+  for (vtkIdType i = 1; i < numberOfPickedPositions; i++)
+  {
+    double currentMinDist2 = vtkMath::Distance2BetweenPoints(pickPositions->GetPoint(i), cameraPosition);
+    if (currentMinDist2 < minDist2)
+    {
+      pickPositions->GetPoint(i, pickPoint);
+      minDist2 = currentMinDist2;
+    }
+  }
+  return true;
+}
+
+vtkPointPlacer* vtkSlicerLinearTransformWidgetRepresentation::GetPointPlacer()
+{
+  return this->PointPlacer;
 }
 
 //----------------------------------------------------------------------

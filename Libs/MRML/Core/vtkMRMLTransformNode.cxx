@@ -1604,6 +1604,29 @@ int vtkMRMLTransformNode::SetMatrixTransformFromParent(vtkMatrix4x4 *matrix)
   return SetMatrixTransformToParent(inverseMatrix.GetPointer());
 }
 
+int vtkMRMLTransformNode::SetMatrixTransformToWorld(vtkMatrix4x4* T_WorldToNode)
+{
+  if (!this->IsLinear())
+  {
+    vtkErrorMacro("Cannot set matrix because vtkMRMLTransformNode contains a composite or non-linear transform. To overwrite the transform, first reset it by calling SetAndObserveTransformToParent(nullptr).");
+    return 0;
+  }
+  vtkNew<vtkTransform> T_ParentToNode;
+  T_ParentToNode->PostMultiply();
+  T_ParentToNode->SetMatrix(T_WorldToNode);
+  vtkMRMLTransformNode* parentNode = this->GetParentTransformNode();
+  if (parentNode)
+  {
+    //T_ParentToNode = T_ParentToWorld * T_WorldToNode
+    vtkNew<vtkMatrix4x4> T_ParentToWorld;
+    parentNode->GetMatrixTransformToWorld(T_ParentToWorld.GetPointer());
+    T_ParentToWorld->Invert();
+    T_ParentToNode->Concatenate(T_ParentToWorld.GetPointer());
+  }
+
+  return SetMatrixTransformToParent(T_ParentToNode->GetMatrix());
+}
+
 //----------------------------------------------------------------------------
 void vtkMRMLTransformNode::ApplyTransformMatrix(vtkMatrix4x4* transformMatrix)
 {

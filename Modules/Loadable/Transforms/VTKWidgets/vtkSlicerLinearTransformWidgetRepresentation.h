@@ -45,24 +45,25 @@
 #include <vtkAppendPolyData.h>
 #include <vtkArcSource.h>
 #include <vtkArrowSource.h>
-#include <vtkConeSource.h>
+#include <vtkCellPicker.h>
+#include <vtkGlyph3D.h>
+#include <vtkLookupTable.h>
 #include <vtkMRMLInteractionEventData.h>
+#include <vtkPointPlacer.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkSphereSource.h>
 #include <vtkTensorGlyph.h>
+#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTubeFilter.h>
-
-#include "vtkSlicerTransformsModuleVTKWidgetsExport.h"
 
 #include "vtkMRMLAbstractWidgetRepresentation.h"
 #include "vtkMRMLTransformDisplayNode.h"
 #include "vtkMRMLTransformNode.h"
+#include "vtkSlicerTransformsModuleVTKWidgetsExport.h"
 
-#include "vtkGlyph3D.h"
-#include "vtkProperty.h"
-#include "vtkTransform.h"
-#include "vtkLookupTable.h"
+
 
 
 class VTK_SLICER_TRANSFORMS_MODULE_VTKWIDGETS_EXPORT vtkSlicerLinearTransformWidgetRepresentation : public vtkMRMLAbstractWidgetRepresentation
@@ -98,6 +99,8 @@ public:
 
   /// Get the axis for the handle specified by the index
   virtual void GetInteractionHandleAxisWorld(int type, int index, double axis[3]);
+  void GetInteractionHandleOriginWorld(double originWorld[3]);
+  
 
   //for interaction
   /// Return found component type (as vtkMRMLTransformDisplayNode::ComponentType).
@@ -109,6 +112,10 @@ public:
   /// Check if interaction with the transformation handles is possible
   virtual void CanInteractWithHandles(vtkMRMLInteractionEventData* interactionEventData,
     int& foundComponentType, int& foundComponentIndex, double& closestDistance2);
+
+  bool AccuratePick(int x, int y, double pickPoint[3], double pickNormal[3] = nullptr);
+
+  virtual vtkPointPlacer* GetPointPlacer();
 
 protected:
   vtkSlicerLinearTransformWidgetRepresentation();
@@ -219,7 +226,11 @@ protected:
 
   vtkTimeStamp TransformTransformModifiedTime;
 
-  TransformInteractionPipeline* InteractionPipeline = nullptr;
+  TransformInteractionPipeline* InteractionPipeline;
+
+  vtkSmartPointer<vtkPointPlacer> PointPlacer;
+
+  vtkSmartPointer<vtkCellPicker> AccuratePicker;
 
 private:
 	vtkSlicerLinearTransformWidgetRepresentation(const vtkSlicerLinearTransformWidgetRepresentation&) = delete;

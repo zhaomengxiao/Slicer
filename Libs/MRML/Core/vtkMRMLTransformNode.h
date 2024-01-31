@@ -200,7 +200,7 @@ public:
   vtkMRMLTransformNode* GetFirstCommonParent(vtkMRMLTransformNode* targetNode);
 
   ///
-  /// Set a new matrix transform of this node to parent node.
+  /// Set a new matrix transform of this node to parent node(T_ParentToNode).
   /// Invokes a TransformModified event (does not invoke Modified).
   /// The method only allows setting or updating an empty or simple
   /// linear transform.
@@ -214,10 +214,14 @@ public:
   virtual int SetMatrixTransformToParent(vtkMatrix4x4 *matrix);
 
   ///
-  /// Set a new matrix transform of this node from parent node.
+  /// Set a new matrix transform of this node from parent node(T_NodeToParent).
   /// \sa SetMatrixTransformToParent
   virtual int SetMatrixTransformFromParent(vtkMatrix4x4 *matrix);
 
+  ///
+  /// Set a new matrix transform of this node to world node (T_WorldToNode).
+  /// \sa SetMatrixTransformToParent
+  virtual int SetMatrixTransformToWorld(vtkMatrix4x4* T_WorldToNode);
   ///
   /// Applies a transformation matrix to the current matrix.
   /// Difference compared to ApplyTransform(): if the current
