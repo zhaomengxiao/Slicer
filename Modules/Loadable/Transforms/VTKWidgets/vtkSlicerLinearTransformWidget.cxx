@@ -41,6 +41,9 @@
 #include "vtkMRMLTransformNode.h"
 #include <vtkMRMLApplicationLogic.h>
 
+#include "vtkMRMLSliceNode.h"
+#include "vtkSlicerLinearTransformWidgetRepresentation2D.h"
+
 vtkStandardNewMacro(vtkSlicerLinearTransformWidget);
 
 //----------------------------------------------------------------------
@@ -270,7 +273,7 @@ bool vtkSlicerLinearTransformWidget::ProcessEndMouseDrag(vtkMRMLInteractionEvent
 //-------------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::ProcessWidgetJumpCursor(vtkMRMLInteractionEventData* vtkNotUsed(eventData))
 {
-  /*if (this->WidgetState != WidgetStateOnWidget &&
+  if (this->WidgetState != WidgetStateOnWidget &&
     this->WidgetState != WidgetStateOnTranslationHandle &&
     this->WidgetState != WidgetStateOnRotationHandle &&
     this->WidgetState != WidgetStateOnScaleHandle)
@@ -285,11 +288,11 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetJumpCursor(vtkMRMLInteractionE
     return false;
     }
 
-  int componentIndex = transformDisplayNode->GetActiveComponentIndex();;
+  //int componentIndex = transformDisplayNode->GetActiveComponentIndex();;
   int componentType = transformDisplayNode->GetActiveComponentType();
 
   // Use first active control point for jumping //TODO: Have an 'even more active' point concept
-  if (componentType == vtkMRMLTransformDisplayNode::ComponentControlPoint)
+  /*if (componentType == vtkMRMLTransformDisplayNode::ComponentControlPoint)
     {
     std::vector<int> activeControlPointIndices;
     transformDisplayNode->GetActiveControlPoints(activeControlPointIndices);
@@ -302,33 +305,40 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetJumpCursor(vtkMRMLInteractionE
       {
       return false;
       }
-    }
+    }*/
 
   transformNode->GetScene()->SaveStateForUndo();
 
-  vtkNew<vtkMRMLInteractionEventData> jumpToPointEventData;
+  /*vtkNew<vtkMRMLInteractionEventData> jumpToPointEventData;
   jumpToPointEventData->SetType(vtkMRMLTransformDisplayNode::JumpToPointEvent);
   jumpToPointEventData->SetComponentType(componentType);
   jumpToPointEventData->SetComponentIndex(componentIndex);
-  jumpToPointEventData->SetViewNode(this->WidgetRep->GetViewNode());
+  jumpToPointEventData->SetViewNode(this->WidgetRep->GetViewNode());*/
+  double position_World[3] = { 0.0, 0.0, 0.0 };
 
   if (componentType == vtkMRMLTransformDisplayNode::ComponentRotationHandle
     || componentType == vtkMRMLTransformDisplayNode::ComponentTranslationHandle
     || componentType == vtkMRMLTransformDisplayNode::ComponentScaleHandle)
-    {
+  {
     // For interaction handle, send the position of the handle as well.
     // The position of the handle may be different in each view, so we need to get the position from the representation.
     vtkSlicerLinearTransformWidgetRepresentation* rep = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
     if (rep)
-      {
-      double position_World[3] = { 0.0, 0.0, 0.0 };
+    {
       rep->GetInteractionHandlePositionWorld(componentType, transformDisplayNode->GetActiveComponentIndex(), position_World);
-      jumpToPointEventData->SetWorldPosition(position_World);
-      }
+      //jumpToPointEventData->SetWorldPosition(position_World);
     }
+  }
 
-  transformDisplayNode->InvokeEvent(vtkMRMLTransformDisplayNode::JumpToPointEvent, jumpToPointEventData);
-  return true;*/
+  //transformDisplayNode->InvokeEvent(vtkMRMLTransformDisplayNode::JumpToPointEvent, jumpToPointEventData);
+  vtkMRMLSliceNode::JumpAllSlices(this->GetTransformNode()->GetScene(), position_World[0], position_World[1], position_World[2], vtkMRMLSliceNode::CenteredJumpSlice, -1, nullptr);
+  /*vtkMRMLSliceNode* sliceNode = nullptr;
+  sliceNode = vtkMRMLSliceNode::SafeDownCast(this->WidgetRep->GetViewNode());
+  if (sliceNode)
+  {
+    sliceNode->JumpSliceByOffsetting(position_World[0], position_World[1], position_World[2]);
+    return true;
+  }*/
   return true;
 }
 
@@ -336,9 +346,16 @@ bool vtkSlicerLinearTransformWidget::ProcessWidgetJumpCursor(vtkMRMLInteractionE
 bool vtkSlicerLinearTransformWidget::ConvertDisplayPositionToWorld(const int displayPos[2],
   double worldPos[3], double worldOrientationMatrix[9], double* refWorldPos/*=nullptr*/)
 {
-  
+  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
   vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
   double doubleDisplayPos[3] = { static_cast<double>(displayPos[0]), static_cast<double>(displayPos[1]), 0.0 };
+
+  if (rep2d)
+  {
+    // 2D view
+    rep2d->GetSliceToWorldCoordinates(doubleDisplayPos, worldPos);
+    return true;
+  }
   if (rep3d)
     {
     // 3D view
@@ -407,7 +424,14 @@ void vtkSlicerLinearTransformWidget::CreateDefaultRepresentation(vtkMRMLTransfor
 {
   vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation> rep = nullptr;
   
-  rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation>::New();
+  if (vtkMRMLSliceNode::SafeDownCast(viewNode))
+  {
+    rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation2D>::New();
+  }
+  else
+  {
+    rep = vtkSmartPointer<vtkSlicerLinearTransformWidgetRepresentation>::New();
+  }
   
   this->SetRenderer(renderer);
   this->SetRepresentation(rep);
@@ -715,17 +739,30 @@ void vtkSlicerLinearTransformWidget::TranslateWidget(double eventPos[2])
   double eventPos_World[3] = { 0.0 };
   double orientation_World[9] = { 0.0 };
 
-  vtkSlicerLinearTransformWidgetRepresentation* rep = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
-  
-  if (rep)
+  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
+  vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
+
+  if (rep2d)
+  {
+    // 2D view
+    double eventPos_Slice[3] = { 0. };
+    eventPos_Slice[0] = this->LastEventPosition[0];
+    eventPos_Slice[1] = this->LastEventPosition[1];
+    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, lastEventPos_World);
+
+    eventPos_Slice[0] = eventPos[0];
+    eventPos_Slice[1] = eventPos[1];
+    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, eventPos_World);
+  }
+  else if (rep3d)
     {
     // 3D view
-    if (!rep->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
+    if (!rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
       this->LastEventPosition, lastEventPos_World, orientation_World))
       {
       return;
       }
-    if (!rep->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
+    if (!rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
       eventPos, lastEventPos_World, eventPos_World, orientation_World))
       {
       return;
@@ -742,7 +779,7 @@ void vtkSlicerLinearTransformWidget::TranslateWidget(double eventPos[2])
     int index = this->GetTransformDisplayNode()->GetActiveComponentIndex();
 
     double translationAxis_World[3] = { 0 };
-    rep->GetInteractionHandleAxisWorld(type, index, translationAxis_World);
+    rep3d->GetInteractionHandleAxisWorld(type, index, translationAxis_World);
 
     // Only perform constrained translation if the length of the axis is non-zero.
     if (vtkMath::Norm(translationAxis_World) > 0)
@@ -850,8 +887,23 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
   double orientation_World[9] = { 0. };
   double eventPos_Display[2] = { 0. };
 
+  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
   vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
-  if (rep3d)
+  if (rep2d)
+  {
+    double eventPos_Slice[3] = { 0. };
+    eventPos_Slice[0] = this->LastEventPosition[0];
+    eventPos_Slice[1] = this->LastEventPosition[1];
+    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, lastEventPos_World);
+
+    eventPos_Slice[0] = eventPos[0];
+    eventPos_Slice[1] = eventPos[1];
+    rep2d->GetSliceToWorldCoordinates(eventPos_Slice, eventPos_World);
+
+    eventPos_Display[0] = eventPos_Slice[0];
+    eventPos_Display[1] = eventPos_Slice[1];
+  }
+  else if (rep3d)
     {
     if (rep3d->GetPointPlacer()->ComputeWorldPosition(this->Renderer,
       this->LastEventPosition, lastEventPos_World, orientation_World))
@@ -957,6 +1009,7 @@ void vtkSlicerLinearTransformWidget::RotateWidget(double eventPos[2])
 //----------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::GetIntersectionOnAxisPlane(int type, int index, const double input_Display[2], double outputIntersection_World[3])
 {
+  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
   vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
 
   double rotationAxis[3] = { 0 };
@@ -971,7 +1024,20 @@ bool vtkSlicerLinearTransformWidget::GetIntersectionOnAxisPlane(int type, int in
   double inputPoint0_World[3] = { 0.0, 0.0, 0.0 };
   double inputPoint1_World[3] = { 0.0, 0.0, 1.0 };
   double projectionVector_World[3] = { 0 };
-  if (rep3d)
+
+  if (rep2d)
+  {
+    double inputPoint0_Display[3] = { input_Display[0], input_Display[1], 0.0 };
+    double inputPoint1_Display[3] = { input_Display[0], input_Display[1], 1.0 };
+
+    vtkNew<vtkTransform> displayToWorldTransform;
+    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(rep2d->GetViewNode());
+    vtkMatrix4x4* xyToRASMatrix = sliceNode->GetXYToRAS();
+    displayToWorldTransform->SetMatrix(xyToRASMatrix);
+    displayToWorldTransform->TransformPoint(inputPoint0_Display, inputPoint0_World);
+    displayToWorldTransform->TransformPoint(inputPoint1_Display, inputPoint1_World);
+  }
+  else if (rep3d)
     {
     vtkRenderer* renderer = rep3d->GetRenderer();
     vtkCamera* camera = renderer->GetActiveCamera();
@@ -1033,6 +1099,7 @@ bool vtkSlicerLinearTransformWidget::GetIntersectionOnAxisPlane(int type, int in
 //----------------------------------------------------------------------
 bool vtkSlicerLinearTransformWidget::GetClosestPointOnInteractionAxis(int type, int index, const double input_Display[2], double outputClosestPoint_World[3])
 {
+  vtkSlicerLinearTransformWidgetRepresentation2D* rep2d = vtkSlicerLinearTransformWidgetRepresentation2D::SafeDownCast(this->WidgetRep);
   vtkSlicerLinearTransformWidgetRepresentation* rep3d = vtkSlicerLinearTransformWidgetRepresentation::SafeDownCast(this->WidgetRep);
 
   double translationAxis_World[3] = { 0 };
@@ -1042,7 +1109,19 @@ bool vtkSlicerLinearTransformWidget::GetClosestPointOnInteractionAxis(int type, 
 
   double inputPoint0_World[3] = { 0.0, 0.0, 0.0 };
   double inputPoint1_World[3] = { 0.0, 0.0, 1.0 };
-  if (rep3d)
+  if (rep2d)
+  {
+    double inputPoint0_Display[3] = { input_Display[0], input_Display[1], 0.0 };
+    double inputPoint1_Display[3] = { input_Display[0], input_Display[1], 1.0 };
+
+    vtkNew<vtkTransform> displayToWorldTransform;
+    vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(rep2d->GetViewNode());
+    vtkMatrix4x4* xyToRASMatrix = sliceNode->GetXYToRAS();
+    displayToWorldTransform->SetMatrix(xyToRASMatrix);
+    displayToWorldTransform->TransformPoint(inputPoint0_Display, inputPoint0_World);
+    displayToWorldTransform->TransformPoint(inputPoint1_Display, inputPoint1_World);
+  }
+  else if (rep3d)
     {
     vtkRenderer* renderer = rep3d->GetRenderer();
     vtkCamera* camera = renderer->GetActiveCamera();

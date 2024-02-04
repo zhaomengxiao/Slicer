@@ -62,7 +62,7 @@ public:
 
   /// Check if interaction with the transformation handles is possible
   virtual void CanInteractWithHandles(vtkMRMLInteractionEventData* interactionEventData,
-    int& foundComponentType, int& foundComponentIndex, double& closestDistance2);
+    int& foundComponentType, int& foundComponentIndex, double& closestDistance2) override; 
 
   /// Subclasses of vtkSlicerLinearTransformWidgetRepresentation2D must implement these methods. These
   /// are the methods that the widget and its representation use to
@@ -97,7 +97,7 @@ protected:
 
   void UpdatePlaneFromSliceNode();
 
-  void UpdateViewScaleFactor() override;
+  void UpdateViewScaleFactor();
 
   // Return squared distance of maximum distance for picking an interaction handle,
   // in pixels.
@@ -110,9 +110,9 @@ protected:
   /// Check if the representation polydata intersects the slice
   bool IsRepresentationIntersectingSlice(vtkPolyData* representation, const char* arrayName);
 
-  vtkSmartPointer<vtkIntArray> PointsVisibilityOnSlice;
+  //vtkSmartPointer<vtkIntArray> PointsVisibilityOnSlice;
   bool                         CenterVisibilityOnSlice = { false };
-  bool                         AnyPointVisibilityOnSlice = { false };  // at least one point is visible
+  //bool                         AnyPointVisibilityOnSlice = { false };  // at least one point is visible
 
   vtkSmartPointer<vtkTransform> WorldToSliceTransform;
   vtkSmartPointer<vtkPlane> SlicePlane;
@@ -121,7 +121,7 @@ protected:
   {
   public:
     TransformInteractionPipeline2D(vtkSlicerLinearTransformWidgetRepresentation* representation);
-    ~TransformInteractionPipeline2D() override = default;;
+    ~TransformInteractionPipeline2D() override = default;
 
     void GetViewPlaneNormal(double viewPlaneNormal[3]) override;
 

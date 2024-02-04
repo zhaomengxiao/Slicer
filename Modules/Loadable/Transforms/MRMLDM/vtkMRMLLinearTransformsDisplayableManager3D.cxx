@@ -28,27 +28,16 @@
 
 // MRML includes
 #include <vtkEventBroker.h>
-#include <vtkMRMLProceduralColorNode.h>
 #include <vtkMRMLScene.h>
 #include <vtkMRMLTransformDisplayNode.h>
 #include <vtkMRMLTransformNode.h>
 #include <vtkMRMLViewNode.h>
 
 // VTK includes
-#include <vtkBoxRepresentation.h>
-#include <vtkBoxWidget2.h>
 #include <vtkCallbackCommand.h>
-#include <vtkCollection.h>
-#include <vtkGeneralTransform.h>
-#include <vtkLineSource.h>
-#include <vtkMatrix4x4.h>
-#include <vtkNew.h>
 #include <vtkObjectFactory.h>
-#include <vtkPickingManager.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
-#include <vtkTransform.h>
 
 #include "vtkMRMLInteractionNode.h"
 #include "vtkSlicerLinearTransformWidget.h"
@@ -203,7 +192,7 @@ vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::~vtkInternal()
 bool vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::UseDisplayNode(vtkMRMLTransformDisplayNode* displayNode)
 {
    // allow nodes to appear only in designated viewers
-  if (displayNode && !displayNode->IsDisplayableInView(this->External->GetMRMLViewNode()->GetID()))
+  if (displayNode && !displayNode->IsDisplayableInView(this->External->GetMRMLDisplayableNode()->GetID()))
     {
     return false;
     }
@@ -296,28 +285,6 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::RemoveDisplayNode
   }
   this->RemoveDisplayObservations(displayNode);
 
-  //remove old interactor
-  /*PipelinesCacheType::iterator actorsIt = this->DisplayPipelines.find(displayNode);
-  if(actorsIt == this->DisplayPipelines.end())
-    {
-    return;
-    }
-  
-  Pipeline* pipeline = actorsIt->second;
-  if (pipeline->Widget)
-    {
-    // The widget must be disabled because that removes its internal KeyEventCallbackCommand observer.
-    // Without this, a keypress event in the 3D view would call vtkBoxWidget2::ProcessKeyEvents method
-    // of the deleted widget, making the application crash.
-    pipeline->Widget->SetEnabled(false);
-    // Remove the widget observers that this class has added.
-    pipeline->Widget->RemoveAllObservers();
-    }
-  this->WidgetMap.erase(pipeline->Widget);
-  delete pipeline;
-  this->DisplayPipelines.erase(actorsIt);*/
-
-  //remove new interactor
   DisplayNodeToWidgetIt displayNodeIt = this->TransformDisplayNodesToWidgets.find(displayNode);
   if (displayNodeIt == this->TransformDisplayNodesToWidgets.end())
   {
@@ -343,65 +310,6 @@ void vtkMRMLLinearTransformsDisplayableManager3D::vtkInternal::AddDisplayNode(vt
     return;
     }
 
-  // Do not add the display node if it is already associated with a pipeline object.
-  // This happens when a transform node already associated with a display node
-  // is copied into an other (using vtkMRMLNode::Copy()) and is added to the scene afterward.
-  // Related issue are #3428 and #2608
-  /*PipelinesCacheType::iterator it;
-  it = this->DisplayPipelines.find(displayNode);
-  if (it != this->DisplayPipelines.end())
-    {
-    return;
-    }*/
-
-  /*this->AddDisplayObservations(displayNode);*/
-
-  //old Interactor
-  // Create pipeline
-  /*Pipeline* pipeline = new Pipeline();
-  pipeline->UpdateWidgetBounds = true;
-  this->DisplayPipelines.insert( std::make_pair(displayNode, pipeline) );
-
-  // Interaction VTK
-  //  - Widget
-  pipeline->Widget = vtkSmartPointer<vtkBoxWidget2>::New();
-  vtkNew<vtkBoxRepresentation> widgetRep;
-  pipeline->Widget->SetRepresentation(widgetRep);
-  //  - Transform
-  pipeline->WidgetDisplayTransform = vtkSmartPointer<vtkTransform>::New();
-  // - Widget events
-  pipeline->Widget->AddObserver(
-    vtkCommand::InteractionEvent, this->External->GetWidgetsCallbackCommand());
-
-  if (this->External->GetInteractor()->GetPickingManager())
-    {
-    if (!(this->External->GetInteractor()->GetPickingManager()->GetEnabled()))
-      {
-      // if the picking manager is not already turned on for this
-      // interactor, enable it
-      this->External->GetInteractor()->GetPickingManager()->EnabledOn();
-      }
-    }
-
-  // Add actor / set renderers and cache
-  pipeline->Widget->SetInteractor(this->External->GetInteractor());
-  pipeline->Widget->SetCurrentRenderer(this->External->GetRenderer());
-  this->WidgetMap.insert( std::make_pair(pipeline->Widget, displayNode) );
-
-  // add the callback
-  vtkNew<vtkLinearTransformWidgetCallback> widgetCallback;
-  widgetCallback->SetNode(mNode);
-  widgetCallback->SetWidget(pipeline->Widget);
-  widgetCallback->SetDisplayableManager(this->External);
-  pipeline->Widget->AddObserver(vtkCommand::StartInteractionEvent, widgetCallback);
-  pipeline->Widget->AddObserver(vtkCommand::EndInteractionEvent, widgetCallback);
-  pipeline->Widget->AddObserver(vtkCommand::InteractionEvent, widgetCallback);
-
-  // Update cached matrices. Calls UpdateDisplayNodePipeline
-  this->UpdateDisplayableTransforms(mNode, true);*/
-
-
-  //new Interactor
   // Do not add the display node if displayNodeIt is already associated with a widget object.
   // This happens when a segmentation node already associated with a display node
   // is copied into an other (using vtkMRMLNode::Copy()) and is added to the scene afterward.
@@ -1060,6 +968,70 @@ void vtkMRMLLinearTransformsDisplayableManager3D::OnMRMLSceneEndBatchProcess()
 {
   this->SetUpdateFromMRMLRequested(true);
   this->RequestRender();
+}
+
+void vtkMRMLLinearTransformsDisplayableManager3D::OnMRMLDisplayableNodeModifiedEvent(vtkObject* caller)
+{
+  vtkDebugMacro("OnMRMLDisplayableNodeModifiedEvent");
+
+  if (!caller)
+  {
+    vtkErrorMacro("OnMRMLDisplayableNodeModifiedEvent: Could not get caller.");
+    return;
+  }
+
+  vtkMRMLSliceNode* sliceNode = vtkMRMLSliceNode::SafeDownCast(caller);
+  if (sliceNode)
+  {
+    // the associated renderWindow is a 2D SliceView
+    // this is the entry point for all events fired by one of the three sliceviews
+    // (e.g. change slice number, zoom etc.)
+
+    // we remember that this instance of the displayableManager deals with 2D
+    // this is important for widget creation etc. and save the actual SliceNode
+    // because during Slicer startup the SliceViews fire events, it will be always set correctly
+    this->SliceNode = sliceNode;
+
+    // now we call the handle for specific sliceNode actions
+    this->OnMRMLSliceNodeModifiedEvent();
+
+    // and exit
+    return;
+  }
+
+  vtkMRMLViewNode* viewNode = vtkMRMLViewNode::SafeDownCast(caller);
+  if (viewNode)
+  {
+    // the associated renderWindow is a 3D View
+    vtkDebugMacro("OnMRMLDisplayableNodeModifiedEvent: This displayableManager handles a ThreeD view.");
+    return;
+  }
+}
+
+void vtkMRMLLinearTransformsDisplayableManager3D::OnMRMLSliceNodeModifiedEvent()
+{
+  bool renderRequested = false;
+
+  // run through all transform nodes in the helper
+  vtkInternal::DisplayNodeToWidgetIt it
+    = this->Internal->TransformDisplayNodesToWidgets.begin();
+  while (it != this->Internal->TransformDisplayNodesToWidgets.end())
+  {
+    // we loop through all widgets
+    vtkSlicerLinearTransformWidget* widget = (it->second);
+    widget->UpdateFromMRML(this->SliceNode, vtkCommand::ModifiedEvent);
+    if (widget->GetNeedToRender())
+    {
+      renderRequested = true;
+      widget->NeedToRenderOff();
+    }
+    ++it;
+  }
+
+  if (renderRequested)
+  {
+    this->RequestRender();
+  }
 }
 
 //---------------------------------------------------------------------------

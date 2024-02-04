@@ -1210,6 +1210,7 @@ void vtkSlicerMarkupsWidgetRepresentation2D::UpdatePlaneFromSliceNode()
   rasToSliceXY->SetElement(2, 1, 0);
   rasToSliceXY->SetElement(2, 2, 0);
   this->WorldToSliceTransform->SetMatrix(rasToSliceXY.GetPointer());
+  vtkInfoMacro("!!!!vtkSlicerMarkupsWidgetRepresentation2D::UpdatePlaneFromSliceNode::WorldToSliceTransform:!!!" << *this->WorldToSliceTransform);
 
   // Update slice plane (for distance computation)
   double normal[3];
@@ -1242,6 +1243,9 @@ void vtkSlicerMarkupsWidgetRepresentation2D::UpdateViewScaleFactor()
   vtkMatrix4x4* xyToSlice = this->GetSliceNode()->GetXYToSlice();
   this->ViewScaleFactorMmPerPixel = sqrt(xyToSlice->GetElement(0, 1) * xyToSlice->GetElement(0, 1)
     + xyToSlice->GetElement(1, 1) * xyToSlice->GetElement(1, 1));
+
+  vtkWarningMacro("MarkupsWidgetRepresentation2D::ScreenSizePixel: " << ScreenSizePixel);
+  vtkWarningMacro("MarkupsWidgetRepresentation2D::ViewScaleFactorMmPerPixel: " << ViewScaleFactorMmPerPixel);
 }
 
 //----------------------------------------------------------------------
@@ -1325,6 +1329,7 @@ void vtkSlicerMarkupsWidgetRepresentation2D::UpdateInteractionPipeline()
     return;
     }
   interactionPipeline->WorldToSliceTransformFilter->SetTransform(this->WorldToSliceTransform);
+  vtkInfoMacro("!!!!vtkSlicerMarkupsWidgetRepresentation2D::UpdateInteractionPipeline::WorldToSliceTransform:!!!" << *this->WorldToSliceTransform);
   // Final visibility handled by superclass in vtkSlicerMarkupsWidgetRepresentation
   Superclass::UpdateInteractionPipeline();
 }

@@ -26,15 +26,18 @@
 
 // MRML includes
 
+#include <vtkConeSource.h>
 #include <vtkDoubleArray.h>
 #include <vtkFloatArray.h>
 #include <vtkFocalPlanePointPlacer.h>
 #include <vtkLine.h>
 #include <vtkMRMLFolderDisplayNode.h>
 #include <vtkMRMLTransformNode.h>
+#include <vtkRenderWindow.h>
 
 //----------------------------------------------------------------------
 //----------------------------------------------------------------------
+static const double INTERACTION_HANDLE_SIZE = 3; // Size of the sphere models used for handles
 static const double INTERACTION_HANDLE_RADIUS = 0.5; // Size of the sphere models used for handles
 static const double INTERACTION_ROTATION_ARC_TUBE_RADIUS = INTERACTION_HANDLE_RADIUS * 0.4; // Radius of the tube connecting the rotation arc.
 
@@ -66,7 +69,7 @@ vtkSlicerLinearTransformWidgetRepresentation::vtkSlicerLinearTransformWidgetRepr
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLinearTransformWidgetRepresentation::SetupPipline()
+void vtkSlicerLinearTransformWidgetRepresentation::SetupInteractionPipeline()
 {
   this->InteractionPipeline = new TransformInteractionPipeline(this);
   InteractionPipeline->InitializePipeline();
@@ -204,6 +207,12 @@ void vtkSlicerLinearTransformWidgetRepresentation::GetInteractionHandleOriginWor
     double handleOrigin[3] = { 0,0,0 };
     this->InteractionPipeline->HandleToWorldTransform->TransformPoint(handleOrigin, originWorld);
   }
+}
+
+void vtkSlicerLinearTransformWidgetRepresentation::GetInteractionHandlePositionWorld(int type, int index,
+  double position[3])
+{
+  this->InteractionPipeline->GetInteractionHandlePositionWorld(type, index, position);
 }
 
 void vtkSlicerLinearTransformWidgetRepresentation::CanInteract(vtkMRMLInteractionEventData* interactionEventData,
@@ -420,6 +429,42 @@ void vtkSlicerLinearTransformWidgetRepresentation::SetTransformNode(vtkMRMLTrans
   this->TransformNode = transformNode;
 }
 
+void vtkSlicerLinearTransformWidgetRepresentation::UpdateViewScaleFactor()
+{
+  this->ViewScaleFactorMmPerPixel = 1.0;
+  this->ScreenSizePixel = 1000.0;
+  if (!this->Renderer || !this->Renderer->GetActiveCamera())
+  {
+    return;
+  }
+
+  const int* screenSize = this->Renderer->GetRenderWindow()->GetScreenSize();
+  double screenSizePixel = sqrt(screenSize[0] * screenSize[0] + screenSize[1] * screenSize[1]);
+  if (screenSizePixel < 1.0)
+  {
+    // render window is not fully initialized yet
+    return;
+  }
+  this->ScreenSizePixel = screenSizePixel;
+
+  double cameraFP[3] = { 0.0 };
+  this->Renderer->GetActiveCamera()->GetFocalPoint(cameraFP);
+  this->ViewScaleFactorMmPerPixel = this->GetViewScaleFactorAtPosition(cameraFP);
+
+  vtkWarningMacro("TransformWidgetRepresentation3D::ScreenSizePixel: " << ScreenSizePixel);
+  vtkWarningMacro("TransformWidgetRepresentation3D::ViewScaleFactorMmPerPixel: " << ViewScaleFactorMmPerPixel);
+}
+
+void vtkSlicerLinearTransformWidgetRepresentation::UpdateInteractionHandleSize()
+{
+  if (this->InteractionPipeline)
+  {
+    //todo handleScale
+    this->InteractionPipeline->InteractionHandleSize = this->ScreenSizePixel * this->ScreenScaleFactor
+      * INTERACTION_HANDLE_SIZE / 100.0 * this->ViewScaleFactorMmPerPixel;
+  }
+}
+
 //-----------------------------------------------------------------------------
 void vtkSlicerLinearTransformWidgetRepresentation::PrintSelf(ostream& os,
                                                       vtkIndent indent)
@@ -437,11 +482,11 @@ void vtkSlicerLinearTransformWidgetRepresentation::UpdateFromMRML(
 
   if (this->InteractionPipeline == nullptr)
   {
-    this->SetupPipline();
+    this->SetupInteractionPipeline();
   }
   if (this->InteractionPipeline != nullptr)
   {
-    this->UpdatePipline();
+    this->UpdateInteractionPipeline();
   }
 }
 
@@ -466,10 +511,11 @@ void vtkSlicerLinearTransformWidgetRepresentation::UpdateFromMRMLInternal(
     }
 
   this->NeedToRenderOn(); // TODO: to improve performance, call this only if it is actually needed
+  this->UpdateViewScaleFactor();
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerLinearTransformWidgetRepresentation::UpdatePipline()
+void vtkSlicerLinearTransformWidgetRepresentation::UpdateInteractionPipeline()
 {
   vtkMRMLTransformNode* transformNode = this->GetTransformNode();
   if (!transformNode)
@@ -490,7 +536,6 @@ void vtkSlicerLinearTransformWidgetRepresentation::UpdatePipline()
   if (Visibility)
   {
     this->InteractionPipeline->UpdateHandleVisibility();
-    
   }
 
   vtkNew<vtkTransform> handleToWorldTransform;
@@ -532,6 +577,7 @@ int vtkSlicerLinearTransformWidgetRepresentation::RenderOverlay(vtkViewport* vie
 //----------------------------------------------------------------------
 int vtkSlicerLinearTransformWidgetRepresentation::RenderOpaqueGeometry(vtkViewport* viewport)
 {
+  this->UpdateViewScaleFactor();
   int count = 0;
   if (this->InteractionPipeline && this->InteractionPipeline->Actor->GetVisibility())
   {
@@ -539,8 +585,8 @@ int vtkSlicerLinearTransformWidgetRepresentation::RenderOpaqueGeometry(vtkViewpo
     this->InteractionPipeline->UpdateHandleColors();
     if (this->GetTransformDisplayNode())
     {
-      //this->UpdateInteractionHandleSize();
-      //this->InteractionPipeline->SetWidgetScale(this->InteractionPipeline->InteractionHandleSize);
+      this->UpdateInteractionHandleSize();
+      this->InteractionPipeline->SetWidgetScale(this->InteractionPipeline->InteractionHandleSize);
     }
     count += this->InteractionPipeline->Actor->RenderOpaqueGeometry(viewport);
   }
@@ -576,30 +622,40 @@ vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline::Tran
   vtkMRMLAbstractWidgetRepresentation* representation)
 {
   this->Representation = representation;
-
+  /*vtkNew<vtkConeSource> cone;
+  cone->SetHeight(7);
+  cone->SetRadius(3);
+  cone->SetResolution(10);*/
   this->Append = vtkSmartPointer<vtkAppendPolyData>::New();
 
   this->HandleToWorldTransform = vtkSmartPointer<vtkTransform>::New();
   this->HandleToWorldTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  //this->HandleToWorldTransformFilter->SetInputConnection(cone->GetOutputPort());
   this->HandleToWorldTransformFilter->SetInputConnection(this->Append->GetOutputPort());
   this->HandleToWorldTransformFilter->SetTransform(this->HandleToWorldTransform);
 
   this->ColorTable = vtkSmartPointer<vtkLookupTable>::New();
 
-  this->Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  vtkNew<vtkCoordinate> coordinate;
+  coordinate->SetCoordinateSystemToWorld();
+
+  this->Mapper = vtkSmartPointer<vtkPolyDataMapper2D>::New();
   this->Mapper->SetInputConnection(this->HandleToWorldTransformFilter->GetOutputPort());
   this->Mapper->SetColorModeToMapScalars();
   this->Mapper->ColorByArrayComponent("colorIndex", 0);
   this->Mapper->SetLookupTable(this->ColorTable);
   this->Mapper->ScalarVisibilityOn();
   this->Mapper->UseLookupTableScalarRangeOn();
+  this->Mapper->SetTransformCoordinate(coordinate);
   
 
-  this->Property = vtkSmartPointer<vtkProperty>::New();
+  //this->Property = vtkSmartPointer<vtkProperty>::New();
+  this->Property = vtkSmartPointer<vtkProperty2D>::New();
   this->Property->SetPointSize(0.0);
   this->Property->SetLineWidth(0.0);
 
-  this->Actor = vtkSmartPointer<vtkActor>::New();
+  this->Actor = vtkSmartPointer<vtkActor2D>::New();
+  //this->Actor = vtkSmartPointer<vtkActor>::New();
   this->Actor->SetProperty(this->Property);
   this->Actor->SetMapper(this->Mapper);
 }
@@ -608,8 +664,8 @@ void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline:
 {
   this->CreateRotationHandles();
   this->CreateTranslationHandles();
-  this->UpdateHandleVisibility();
-  this->UpdateHandleColors();
+  //this->UpdateHandleVisibility();
+  //this->UpdateHandleColors();
   
 }
 
@@ -820,7 +876,6 @@ void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline:
     rotationVisibilityArray->SetValue(0, rotationVisibility);
     rotationVisibilityArray->SetValue(1, rotationVisibility);
     rotationVisibilityArray->SetValue(2, rotationVisibility);
-    vtkGenericWarningMacro("rotationVisibility:" << rotationVisibility);
   }
 
   vtkIdTypeArray* translationVisibilityArray = vtkIdTypeArray::SafeDownCast(this->TranslationHandlePoints->GetPointData()->GetArray("visibility"));
@@ -831,7 +886,6 @@ void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline:
     translationVisibilityArray->SetValue(1, translationVisibility);
     translationVisibilityArray->SetValue(2, translationVisibility);
     translationVisibilityArray->SetValue(3, translationVisibility);
-    vtkGenericWarningMacro("translationVisibility:" << translationVisibility);
   }
 }
 
@@ -1156,6 +1210,46 @@ void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline:
 
   double handleOrigin[3] = { 0,0,0 };
   this->HandleToWorldTransform->TransformPoint(handleOrigin, originWorld);
+}
+
+void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline::GetInteractionHandlePositionWorld(
+  int type, int index, double positionWorld[3])
+{
+  if (!positionWorld)
+  {
+    vtkErrorWithObjectMacro(nullptr, "GetInteractionHandlePositionWorld: Invalid position argument!");
+  }
+
+  if (type == vtkMRMLTransformDisplayNode::ComponentRotationHandle)
+  {
+    this->RotationHandlePoints->GetPoint(index, positionWorld);
+    this->RotationScaleTransform->GetTransform()->TransformPoint(positionWorld, positionWorld);
+    this->HandleToWorldTransform->TransformPoint(positionWorld, positionWorld);
+  }
+  else if (type == vtkMRMLTransformDisplayNode::ComponentTranslationHandle)
+  {
+    this->TranslationHandlePoints->GetPoint(index, positionWorld);
+    this->TranslationScaleTransform->GetTransform()->TransformPoint(positionWorld, positionWorld);
+    this->HandleToWorldTransform->TransformPoint(positionWorld, positionWorld);
+  }
+  else if (type == vtkMRMLTransformDisplayNode::ComponentScaleHandle)
+  {
+    /*this->ScaleHandlePoints->GetPoint(index, positionWorld);
+    this->HandleToWorldTransform->TransformPoint(positionWorld, positionWorld);*/
+    vtkErrorWithObjectMacro(nullptr,"TransformInteractionPipeline::GetInteractionHandlePositionWorld::ComponentScaleHandle not implant yet");
+  }
+}
+
+void vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline::SetWidgetScale(double scale)
+{
+  vtkNew<vtkTransform> scaleTransform;
+  scaleTransform->Scale(scale, scale, scale);
+  this->RotationScaleTransform->SetTransform(scaleTransform);
+  this->TranslationScaleTransform->SetTransform(scaleTransform);
+  //this->ScaleScaleTransform->SetTransform(scaleTransform);
+  this->AxisRotationGlypher->SetScaleFactor(scale);
+  this->AxisTranslationGlypher->SetScaleFactor(scale);
+  //this->AxisScaleGlypher->SetScaleFactor(scale);
 }
 
 vtkSlicerLinearTransformWidgetRepresentation::HandleInfoList vtkSlicerLinearTransformWidgetRepresentation::TransformInteractionPipeline::GetHandleInfoList()

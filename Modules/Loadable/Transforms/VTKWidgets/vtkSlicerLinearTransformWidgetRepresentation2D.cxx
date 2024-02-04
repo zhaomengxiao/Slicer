@@ -17,33 +17,26 @@
 =========================================================================*/
 
 // VTK includes
+#include "vtkSlicerLinearTransformWidgetRepresentation2D.h"
 #include "vtkCamera.h"
 #include "vtkCellLocator.h"
 #include "vtkDiscretizableColorTransferFunction.h"
 #include "vtkGlyph2D.h"
-#include "vtkLabelPlacementMapper.h"
 #include "vtkLine.h"
 #include "vtkMath.h"
 #include "vtkMatrix4x4.h"
 #include "vtkObjectFactory.h"
-#include "vtkPiecewiseFunction.h"
 #include "vtkPlane.h"
 #include "vtkPointData.h"
 #include "vtkPointSetToLabelHierarchy.h"
-#include "vtkPolyDataMapper2D.h"
-#include "vtkProperty2D.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
-#include "vtkSlicerLinearTransformWidgetRepresentation2D.h"
-#include "vtkSphereSource.h"
 #include "vtkStringArray.h"
-#include "vtkTensorGlyph.h"
-#include "vtkTextActor.h"
-#include "vtkTextProperty.h"
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
 
 // MRML includes
+#include <vtkConeSource.h>
 #include <vtkMRMLFolderDisplayNode.h>
 #include <vtkMRMLInteractionEventData.h>
 
@@ -139,7 +132,7 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::UpdateFromMRMLInternal(vtkM
     }
 
   vtkMRMLTransformNode* transformNode = this->GetTransformNode();
-  if (!transformNode || !this->IsDisplayable())
+  if (!transformNode /*|| !this->IsDisplayable()*/)
     {
     this->VisibilityOff();
     return;
@@ -249,7 +242,7 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::CanInteractWithHandles(
 void vtkSlicerLinearTransformWidgetRepresentation2D::GetActors(vtkPropCollection *pc)
 {
   Superclass::GetActors(pc);
-  this->TextActor->GetActors(pc);
+  //this->TextActor->GetActors(pc);
 }
 
 //----------------------------------------------------------------------
@@ -257,17 +250,17 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::ReleaseGraphicsResources(
   vtkWindow *win)
 {
   Superclass::ReleaseGraphicsResources(win);
-  this->TextActor->ReleaseGraphicsResources(win);
+  //this->TextActor->ReleaseGraphicsResources(win);
 }
 
 //----------------------------------------------------------------------
 int vtkSlicerLinearTransformWidgetRepresentation2D::RenderOverlay(vtkViewport *viewport)
 {
   int count = Superclass::RenderOverlay(viewport);
-  if (this->TextActor->GetVisibility())
+  /*if (this->TextActor->GetVisibility())
     {
     count += this->TextActor->RenderOverlay(viewport);
-    }
+    }*/
   return count;
 }
 
@@ -275,6 +268,15 @@ int vtkSlicerLinearTransformWidgetRepresentation2D::RenderOverlay(vtkViewport *v
 int vtkSlicerLinearTransformWidgetRepresentation2D::RenderOpaqueGeometry(
   vtkViewport *viewport)
 {
+  /*vtkNew<vtkConeSource> cone;
+  cone->SetHeight(10);
+  cone->SetRadius(3);
+  cone->SetResolution(10);
+
+  vtkNew<vtkPolyDataMapper> mapper;
+  mapper->SetInputConnection(cone->GetOutputPort());
+
+  this->InteractionPipeline->Actor->SetMapper(mapper);*/
   int count = 0;
   if (this->InteractionPipeline && this->InteractionPipeline->Actor->GetVisibility())
     {
@@ -283,10 +285,10 @@ int vtkSlicerLinearTransformWidgetRepresentation2D::RenderOpaqueGeometry(
     this->InteractionPipeline->SetWidgetScale(this->InteractionPipeline->InteractionHandleSize);
     count += this->InteractionPipeline->Actor->RenderOpaqueGeometry(viewport);
     }
-  if (this->TextActor->GetVisibility())
+  /*if (this->TextActor->GetVisibility())
     {
     count += this->TextActor->RenderOpaqueGeometry(viewport);
-    }
+    }*/
   
   return count;
 }
@@ -296,10 +298,10 @@ int vtkSlicerLinearTransformWidgetRepresentation2D::RenderTranslucentPolygonalGe
   vtkViewport *viewport)
 {
   int count = Superclass::RenderTranslucentPolygonalGeometry(viewport);
-  if (this->TextActor->GetVisibility())
+  /*if (this->TextActor->GetVisibility())
     {
     count += this->TextActor->RenderTranslucentPolygonalGeometry(viewport);
-    }
+    }*/
   return count;
 }
 
@@ -310,10 +312,10 @@ vtkTypeBool vtkSlicerLinearTransformWidgetRepresentation2D::HasTranslucentPolygo
     {
     return true;
     }
-  if (this->TextActor->GetVisibility() && this->TextActor->HasTranslucentPolygonalGeometry())
+  /*if (this->TextActor->GetVisibility() && this->TextActor->HasTranslucentPolygonalGeometry())
     {
     return true;
-    }
+    }*/
   
   return false;
 }
@@ -324,14 +326,14 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::PrintSelf(ostream& os, vtkI
   //Superclass typedef defined in vtkTypeMacro() found in vtkSetGet.h
   this->Superclass::PrintSelf(os, indent);
 
-  if (this->TextActor)
+  /*if (this->TextActor)
     {
     os << indent << "Text Visibility: " << this->TextActor->GetVisibility() << "\n";
     }
   else
     {
     os << indent << "Text Visibility: (none)\n";
-    }
+    }*/
 }
 
 //---------------------------------------------------------------------------
@@ -379,7 +381,13 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::GetWorldToDisplayCoordinate
 void vtkSlicerLinearTransformWidgetRepresentation2D::UpdatePlaneFromSliceNode()
 {
   vtkMatrix4x4* sliceXYToRAS = this->GetSliceNode()->GetXYToRAS();
-
+  //vtkMatrix4x4* sliceXYToRAS = this->GetSliceNode()->GetSliceToRAS();
+  /*vtkNew<vtkMatrix4x4> res;
+  res->DeepCopy(sliceXYToRAS);
+  vtkMatrix4x4* sliceXY = this->GetSliceNode()->GetXYToRAS();
+  res->SetElement(0, 3, sliceXY->GetElement(0,3));
+  res->SetElement(1, 3, sliceXY->GetElement(1, 3));
+  res->SetElement(2, 3, sliceXY->GetElement(2, 3));*/
   // Update transformation to slice
   vtkNew<vtkMatrix4x4> rasToSliceXY;
   vtkMatrix4x4::Invert(sliceXYToRAS, rasToSliceXY.GetPointer());
@@ -388,6 +396,7 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::UpdatePlaneFromSliceNode()
   rasToSliceXY->SetElement(2, 1, 0);
   rasToSliceXY->SetElement(2, 2, 0);
   this->WorldToSliceTransform->SetMatrix(rasToSliceXY.GetPointer());
+  vtkInfoMacro("!!!!UpdatePlaneFromSliceNode::WorldToSliceTransform:!!!" << *this->WorldToSliceTransform);
 
   // Update slice plane (for distance computation)
   double normal[3];
@@ -420,6 +429,9 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::UpdateViewScaleFactor()
   vtkMatrix4x4* xyToSlice = this->GetSliceNode()->GetXYToSlice();
   this->ViewScaleFactorMmPerPixel = sqrt(xyToSlice->GetElement(0, 1) * xyToSlice->GetElement(0, 1)
     + xyToSlice->GetElement(1, 1) * xyToSlice->GetElement(1, 1));
+
+  vtkWarningMacro("TransformWidgetRepresentation2D::ScreenSizePixel: " << ScreenSizePixel);
+  vtkWarningMacro("TransformWidgetRepresentation2D::ViewScaleFactorMmPerPixel: " << ViewScaleFactorMmPerPixel);
 }
 
 //----------------------------------------------------------------------
@@ -478,6 +490,9 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::UpdateInteractionPipeline()
     return;
     }
   interactionPipeline->WorldToSliceTransformFilter->SetTransform(this->WorldToSliceTransform);
+  auto sliceNodeName = this->GetSliceNode()->GetName();
+  vtkInfoMacro("!!!!UpdateInteractionPipeline::WorldToSliceTransform:sliceNodeName!!!" << sliceNodeName)
+  vtkInfoMacro("!!!!UpdateInteractionPipeline::WorldToSliceTransform:!!!" << *this->WorldToSliceTransform);
   // Final visibility handled by superclass in vtkSlicerLinearTransformWidgetRepresentation
   Superclass::UpdateInteractionPipeline();
 }
@@ -486,6 +501,7 @@ void vtkSlicerLinearTransformWidgetRepresentation2D::UpdateInteractionPipeline()
 vtkSlicerLinearTransformWidgetRepresentation2D::TransformInteractionPipeline2D::TransformInteractionPipeline2D(vtkSlicerLinearTransformWidgetRepresentation* representation)
   : TransformInteractionPipeline(representation)
 {
+ 
   this->WorldToSliceTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
   this->WorldToSliceTransformFilter->SetTransform(vtkNew<vtkTransform>());
   this->WorldToSliceTransformFilter->SetInputConnection(this->HandleToWorldTransformFilter->GetOutputPort());

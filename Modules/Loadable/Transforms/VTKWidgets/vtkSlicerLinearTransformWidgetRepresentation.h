@@ -42,6 +42,8 @@
 #define vtkSlicerLinearTransformWidgetRepresentation_h
 
 #include <vtkActor.h>
+
+#include <vtkActor2D.h>
 #include <vtkAppendPolyData.h>
 #include <vtkArcSource.h>
 #include <vtkArrowSource.h>
@@ -51,7 +53,9 @@
 #include <vtkMRMLInteractionEventData.h>
 #include <vtkPointPlacer.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkPolyDataMapper2D.h>
 #include <vtkProperty.h>
+#include <vtkProperty2D.h>
 #include <vtkSphereSource.h>
 #include <vtkTensorGlyph.h>
 #include <vtkTransform.h>
@@ -78,7 +82,7 @@ public:
   /// Update the representation from LinearTransform node
   void UpdateFromMRML(vtkMRMLNode* caller, unsigned long event, void *callData = nullptr) override;
 
-  void UpdateFromMRMLInternal(vtkMRMLNode* caller, unsigned long event, void* callData = nullptr);
+  virtual void UpdateFromMRMLInternal(vtkMRMLNode* caller, unsigned long event, void* callData = nullptr);
 
   /// Methods to make this class behave as a vtkProp.
   void GetActors(vtkPropCollection*) override;
@@ -94,12 +98,15 @@ public:
   virtual vtkMRMLTransformNode* GetTransformNode();
 
   //for display, setup and update the composite actor
-  void SetupPipline();
-  void UpdatePipline();
+  virtual void SetupInteractionPipeline();
+  virtual void UpdateInteractionPipeline();
 
   /// Get the axis for the handle specified by the index
   virtual void GetInteractionHandleAxisWorld(int type, int index, double axis[3]);
   void GetInteractionHandleOriginWorld(double originWorld[3]);
+  /// Get the position of an interaction handle in world coordinates
+  virtual void GetInteractionHandlePositionWorld(int type, int index, double position[3]);
+
   
 
   //for interaction
@@ -124,6 +131,13 @@ protected:
   double GetViewScaleFactorAtPosition(double positionWorld[3], vtkMRMLInteractionEventData* interactionEventData = nullptr);
 
   virtual void SetTransformNode(vtkMRMLTransformNode *transformNode);
+
+  virtual void UpdateViewScaleFactor();
+  // Update the size of the interaction handle based on screen size + vtkMRMLMarkupsDisplayNode::InteractionHandleScale parameter.
+  virtual void UpdateInteractionHandleSize();
+
+  double ViewScaleFactorMmPerPixel;
+  double ScreenSizePixel; // diagonal size of the screen
 
   class VTK_SLICER_TRANSFORMS_MODULE_VTKWIDGETS_EXPORT TransformInteractionPipeline
   {
@@ -158,9 +172,12 @@ protected:
     vtkSmartPointer<vtkTransformPolyDataFilter>         HandleToWorldTransformFilter;
     vtkSmartPointer<vtkTransform>                       HandleToWorldTransform;
     vtkSmartPointer<vtkLookupTable>                     ColorTable;
-    vtkSmartPointer<vtkPolyDataMapper>                  Mapper;
-    vtkSmartPointer<vtkActor>                           Actor;
-    vtkSmartPointer<vtkProperty>                        Property;
+    //vtkSmartPointer<vtkPolyDataMapper>                  Mapper;
+    //vtkSmartPointer<vtkActor>                           Actor;
+    //vtkSmartPointer<vtkProperty>                        Property;
+    vtkSmartPointer<vtkPolyDataMapper2D>                  Mapper;
+    vtkSmartPointer<vtkActor2D>                           Actor;
+    vtkSmartPointer<vtkProperty2D>                        Property;
 
     double                                              StartFadeAngle{ 30 };
     double                                              EndFadeAngle{ 20 };
@@ -183,6 +200,12 @@ protected:
     void GetInteractionHandleAxisWorld(int type, int index, double axisWorld[3]);
     /// Get the interaction handle origin
     virtual void GetInteractionHandleOriginWorld(double originWorld[3]);
+    /// Get the position of the interaction handle in world coordinates
+    /// Type is specified using vtkMRMLMarkupsDisplayNode::ComponentType
+    virtual void GetInteractionHandlePositionWorld(int type, int index, double positionWorld[3]);
+
+    void SetWidgetScale(double scale);
+
     struct HandleInfo
     {
       HandleInfo(int index, int componentType, double positionWorld[3], double positionLocal[3], double color[4])

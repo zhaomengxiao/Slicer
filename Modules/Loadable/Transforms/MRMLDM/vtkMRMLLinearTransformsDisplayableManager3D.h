@@ -26,6 +26,7 @@
 // MRMLDisplayableManager includes
 #include "vtkMRMLAbstractThreeDViewDisplayableManager.h"
 #include "vtkSlicerLinearTransformWidget.h"
+#include "vtkMRMLSliceNode.h"
 
 #include "vtkSlicerTransformsModuleMRMLDisplayableManagerExport.h"
 
@@ -39,12 +40,12 @@ class vtkMRMLTransformDisplayNode;
 /// contour surfaces
 ///
 class VTK_SLICER_TRANSFORMS_MODULE_MRMLDISPLAYABLEMANAGER_EXPORT vtkMRMLLinearTransformsDisplayableManager3D
-  : public vtkMRMLAbstractThreeDViewDisplayableManager
+  : public vtkMRMLAbstractDisplayableManager
 {
 public:
 
   static vtkMRMLLinearTransformsDisplayableManager3D* New();
-  vtkTypeMacro(vtkMRMLLinearTransformsDisplayableManager3D,vtkMRMLAbstractThreeDViewDisplayableManager);
+  vtkTypeMacro(vtkMRMLLinearTransformsDisplayableManager3D, vtkMRMLAbstractDisplayableManager);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   bool CanProcessInteractionEvent(vtkMRMLInteractionEventData* eventData, double& closestDistance2) override;
@@ -53,7 +54,7 @@ public:
   /// \internal
   /// For testing purposes only:
   /// Return the widget associated with the given transform, if any.
-  vtkAbstractWidget* GetWidget(vtkMRMLTransformDisplayNode* displayNode);
+  //vtkAbstractWidget* GetWidget(vtkMRMLTransformDisplayNode* displayNode);
 
 protected:
 
@@ -74,6 +75,9 @@ protected:
   void OnMRMLSceneEndClose() override;
 
   void OnMRMLSceneEndBatchProcess() override;
+  /// Called after the corresponding MRML View container was modified
+  void OnMRMLDisplayableNodeModifiedEvent(vtkObject* caller) override;
+  virtual void OnMRMLSliceNodeModifiedEvent();
 
   /// Initialize the displayable manager
   void Create() override;
@@ -98,6 +102,10 @@ private:
   class vtkInternal;
   vtkInternal* Internal;
   friend class vtkInternal;
+
+  // by default, this displayableManager handles a 2d view, so the SliceNode
+  // must be set when it's assigned to a viewer
+  vtkWeakPointer<vtkMRMLSliceNode> SliceNode;
 };
 
 #endif

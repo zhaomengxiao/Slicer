@@ -911,6 +911,8 @@ void vtkSlicerMarkupsWidgetRepresentation::UpdateInteractionHandleSize()
     {
     this->InteractionPipeline->InteractionHandleSize = this->ScreenSizePixel * this->ScreenScaleFactor
       * this->MarkupsDisplayNode->GetInteractionHandleScale() / 100.0 * this->ViewScaleFactorMmPerPixel;
+
+    vtkWarningMacro("MarkupsWidgetRepresentation::InteractionHandleSize: " << this->InteractionPipeline->InteractionHandleSize);
     }
 }
 
