@@ -30,8 +30,8 @@ To download Slicer, click [here](https://download.slicer.org/).
 ![](https://github.com/Slicer/Slicer/releases/download/docs-resources/getting_started_download.png)
 
 **Notes:**
-- The "Preview Release" of 3D Slicer is updated daily (process starts at 11pm ET and takes few hours to complete) and represents the latest development including new features and fixes.
-- The "Stable Release" is usually updated a few times a year and is more rigorously tested.
+- The "Preview Release" of 3D Slicer (referred to as "Slicer Preview Release") is updated daily (process starts at 11pm ET and takes few hours to complete) and represents the latest development including new features and fixes. *Continuous* updates for extensions are not provided for preview releases: extensions that are available for a preview release are of the latest version that was available at the time when the release was created. To get updated extensions, a new preview release must be installed.
+- The "Stable Release" of 3D Slicer (referred to as "Slicer Stable Release") is usually updated a few times a year and is more rigorously tested. Continuous updates for extensions are provided for the *latest* Slicer Stable Release, but not for any earlier releases. For example, if latest Slicer Stable Release is Slicer-5.2.2 and the user has Slicer-5.2.1 installed then the user will no longer receive any extension updates. To check if latest version of application and extensions are installed, you can go to `Welcome` module and in `Updates` section click `Check now` button.
 - Slicer is generally simple to install on all platforms. It is possible to install multiple versions of the application on the same user account and they will not interfere with each other. If you run into mysterious problems with your installation you can try deleting the [application settings files](settings.md#settings-file-location).
 - Only 64-bit Slicer installers are available to download. Developers can attempt to build 32-bit versions on their own if they need to run Slicer on a 32-bit operating system. That said, this should be carefully considered as many clinical research tasks, such as processing of large CT or MR volumetric datasets, require more memory than can be accommodated with a 32-bit program.
 
@@ -112,7 +112,10 @@ or:
 :::
 
 #### ArchLinux
-ArchLinux runs the `strip` utility by default; this needs to be disabled in order to run Slicer binaries.  For more information see [this thread on the Slicer Forum](https://discourse.slicer.org/t/could-not-load-dicom-data/14211/5).
+There are user-contributed packages on [AUR](https://aur.archlinux.org/)
+- [3dslicer-bin](https://aur.archlinux.org/packages/3dslicer-bin): this package repacks the official binary for convenient. Note the official Slicer is build with `Slicer_STORE_SETTINGS_IN_APPLICATION_HOME_DIR=ON`, is installed to `/opt` where non-root user has no write permission, user will not be able to install extensions or update application settings.
+- [3dslicer](https://aur.archlinux.org/packages/3dslicer): you could build the package from the source using this `PKGBUILD` file, or just install it from an unofficial repository: [archlinuxcn repo](https://wiki.archlinux.org/title/Unofficial_user_repositories#archlinuxcn).
+- [3dslicer-git](https://aur.archlinux.org/packages/3dslicer-git): same as [3dslicer](https://aur.archlinux.org/packages/3dslicer) but using the latest source.
 
 #### Fedora
 Install the dependencies:

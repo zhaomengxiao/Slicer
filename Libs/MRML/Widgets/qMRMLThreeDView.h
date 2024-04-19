@@ -35,6 +35,7 @@ class vtkMRMLScene;
 class vtkMRMLThreeDViewInteractorStyle;
 class vtkMRMLViewNode;
 class vtkCollection;
+class vtkSSAOPass;
 
 /// \brief 3D view for view nodes.
 /// For performance reasons, the view block refreshes when the scene is in
@@ -43,6 +44,17 @@ class vtkCollection;
 class QMRML_WIDGETS_EXPORT qMRMLThreeDView : public ctkVTKRenderView
 {
   Q_OBJECT
+  /// Show shadows to improve depth perception.
+  /// Currently, only ambient shadows (screen-space ambient occlusion) method is supported and AmbientShadowsSizeScale and AmbientShadowsVolumeOpacityThreshold
+  /// parameters control its appearance.
+  Q_PROPERTY(bool shadowsVisibility READ shadowsVisibility WRITE setShadowsVisibility)
+  /// Ambient shadows size scale.
+  /// Specifies size of features to be emphasized by shadows.The scale is logarithmic, default (0.0) corresponds to object size of about 100
+  /// (in scene physical units).
+  Q_PROPERTY(double ambientShadowsSizeScale READ ambientShadowsSizeScale WRITE setAmbientShadowsSizeScale)
+  /// Volume rendering opacity above this value will cast shadows.
+  Q_PROPERTY(double ambientShadowsVolumeOpacityThreshold READ ambientShadowsVolumeOpacityThreshold WRITE setAmbientShadowsVolumeOpacityThreshold)
+
 public:
   /// Superclass typedef
   typedef ctkVTKRenderView Superclass;
@@ -101,6 +113,14 @@ public:
   void dragEnterEvent(QDragEnterEvent* event) override;
   void dropEvent(QDropEvent* event) override;
 
+  bool shadowsVisibility()const;
+  double ambientShadowsSizeScale()const;
+  double ambientShadowsVolumeOpacityThreshold()const;
+
+  /// Advanced option to directly access SSAO pass used to render the ambient shadows.
+  /// Intended for experimentation and troubleshooting only.
+  Q_INVOKABLE vtkSSAOPass* ssaoPass()const;
+
 public slots:
 
   /// Set the MRML \a scene that should be listened for events
@@ -121,6 +141,10 @@ public slots:
   /// Reimplemented to hide items to not take into
   /// account when computing the boundaries
   virtual void resetFocalPoint();
+
+  void setShadowsVisibility(bool);
+  void setAmbientShadowsSizeScale(double);
+  void setAmbientShadowsVolumeOpacityThreshold(double);
 
 private:
   Q_DECLARE_PRIVATE(qMRMLThreeDView);

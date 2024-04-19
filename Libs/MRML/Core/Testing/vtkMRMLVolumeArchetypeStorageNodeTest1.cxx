@@ -16,6 +16,8 @@
 #include "vtkMRMLVolumeArchetypeStorageNode.h"
 
 #include "vtkImageData.h"
+#include "vtkMatrix3x3.h"
+#include "vtkMatrix4x4.h"
 #include "vtkNew.h"
 #include "vtkPointData.h"
 #include <vtksys/SystemTools.hxx>
@@ -25,9 +27,9 @@ std::string tempFilename(std::string tempDir, std::string suffix, std::string fi
   std::string filename = tempDir + "/vtkMRMLVolumeArchetypeStorageNodeTest1_" + suffix + "." + fileExtension;
   // remove file if exists
   if (remove && vtksys::SystemTools::FileExists(filename.c_str(), true))
-    {
+  {
     vtksys::SystemTools::RemoveFile(filename.c_str());
-    }
+  }
   return filename;
 }
 
@@ -60,66 +62,127 @@ int TestVoxelVectorType(const std::string& tempDir, const std::string& fileExten
   // Test writing
 
   if (canWriteUndefinedVector)
-    {
+  {
     vectorVolumeNode->SetVoxelVectorType(vtkMRMLVolumeNode::VoxelVectorTypeUndefined);
     storageNode->SetFileName(tempFilename(tempDir, "vector_undefined", fileExtension, true).c_str());
     CHECK_BOOL(storageNode->WriteData(vectorVolumeNode), true);
-    }
+  }
 
   if (canWriteSpatialVector)
-    {
+  {
     vectorVolumeNode->SetVoxelVectorType(vtkMRMLVolumeNode::VoxelVectorTypeSpatial);
     storageNode->SetFileName(tempFilename(tempDir, "vector_spatial", fileExtension, true).c_str());
     CHECK_BOOL(storageNode->WriteData(vectorVolumeNode), canWriteSpatialVector);
-    }
+  }
 
   if (canWriteColorRGB)
-    {
+  {
     imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 3);
     imageData->GetPointData()->GetScalars()->Fill(25);
     vectorVolumeNode->SetVoxelVectorType(vtkMRMLVolumeNode::VoxelVectorTypeColorRGB);
     storageNode->SetFileName(tempFilename(tempDir, "vector_rgb", fileExtension, true).c_str());
     CHECK_BOOL(storageNode->WriteData(vectorVolumeNode), true);
-    }
+  }
 
   if (canWriteColorRGBA)
-    {
+  {
     imageData->AllocateScalars(VTK_UNSIGNED_CHAR, 4);
     imageData->GetPointData()->GetScalars()->Fill(36);
     vectorVolumeNode->SetVoxelVectorType(vtkMRMLVolumeNode::VoxelVectorTypeColorRGBA);
     storageNode->SetFileName(tempFilename(tempDir, "vector_rgba", fileExtension, true).c_str());
     CHECK_BOOL(storageNode->WriteData(vectorVolumeNode), true);
-    }
+  }
 
   // Test reading
 
   if (canWriteUndefinedVector)
-    {
+  {
     storageNode->SetFileName(tempFilename(tempDir, "vector_undefined", fileExtension).c_str());
     CHECK_BOOL(storageNode->ReadData(vectorVolumeNode), true);
     CHECK_INT(vectorVolumeNode->GetVoxelVectorType(), vtkMRMLVolumeNode::VoxelVectorTypeUndefined);
-    }
+  }
 
   if (canWriteSpatialVector)
-    {
+  {
     storageNode->SetFileName(tempFilename(tempDir, "vector_spatial", fileExtension).c_str());
     CHECK_BOOL(storageNode->ReadData(vectorVolumeNode), true);
     CHECK_INT(vectorVolumeNode->GetVoxelVectorType(), vtkMRMLVolumeNode::VoxelVectorTypeSpatial);
-    }
+  }
 
   if (canWriteColorRGB)
-    {
+  {
     storageNode->SetFileName(tempFilename(tempDir, "vector_rgb", fileExtension).c_str());
     CHECK_BOOL(storageNode->ReadData(vectorVolumeNode), true);
     CHECK_INT(vectorVolumeNode->GetVoxelVectorType(), vtkMRMLVolumeNode::VoxelVectorTypeColorRGB);
-    }
+  }
 
   if (canWriteColorRGBA)
-    {
+  {
     storageNode->SetFileName(tempFilename(tempDir, "vector_rgba", fileExtension).c_str());
     CHECK_BOOL(storageNode->ReadData(vectorVolumeNode), true);
     CHECK_INT(vectorVolumeNode->GetVoxelVectorType(), vtkMRMLVolumeNode::VoxelVectorTypeColorRGBA);
+  }
+
+  return EXIT_SUCCESS;
+}
+
+int TestFlipsLeftHandedVolumes(const std::string& tempDir)
+{
+  std::cout << "TestFlipsLeftHandedVolumes" << std::endl;
+  // Create a flipped image data with arbitrary K values
+  vtkNew<vtkMRMLScene> scene;
+
+  auto volumeNode = vtkMRMLScalarVolumeNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLScalarVolumeNode"));
+  CHECK_NOT_NULL(volumeNode);
+
+  int n_i{ 10 }, n_j{ 20 }, n_k{ 30 };
+  vtkNew<vtkImageData> imageData;
+  imageData->SetDimensions(n_i, n_j, n_k);
+  imageData->AllocateScalars(VTK_FLOAT, 1);
+  imageData->GetPointData()->GetScalars()->Fill(0);
+
+  for (int i = 0; i < n_i; i++)
+  {
+    for (int j = 0; j < n_j; j++)
+    {
+      for (int k = 0; k < n_k; k++)
+      {
+        imageData->SetScalarComponentFromDouble(i, j, k, 0, k);
+      }
     }
+  }
+  volumeNode->SetIJKToRASDirections(-1., 0., 0., 0., -1., 0., 0., 0., -1.);
+
+  const auto fileName = tempFilename(tempDir, "flipped_volume", "mha", true);
+  auto storageNode =
+    vtkMRMLVolumeArchetypeStorageNode::SafeDownCast(scene->AddNewNodeByClass("vtkMRMLVolumeArchetypeStorageNode"));
+  CHECK_NOT_NULL(storageNode);
+  storageNode->SetSingleFile(true);
+  volumeNode->SetAndObserveImageData(imageData);
+  volumeNode->SetAndObserveStorageNodeID(storageNode->GetID());
+
+  // Check that when loading, the K axis is flipped
+  storageNode->SetFileName(fileName.c_str());
+  CHECK_BOOL(storageNode->WriteData(volumeNode), true);
+  CHECK_BOOL(storageNode->ReadData(volumeNode), true);
+
+  vtkNew<vtkMatrix4x4> matrix;
+  volumeNode->GetIJKToRASDirectionMatrix(matrix);
+
+  CHECK_DOUBLE(matrix->GetElement(0, 0), -1.);
+  CHECK_DOUBLE(matrix->GetElement(1, 1), -1.);
+  CHECK_DOUBLE(matrix->GetElement(2, 2), 1.);
+
+  for (int i = 0; i < n_i; i++)
+  {
+    for (int j = 0; j < n_j; j++)
+    {
+      for (int k = 0; k < n_k; k++)
+      {
+        CHECK_DOUBLE(volumeNode->GetImageData()->GetScalarComponentAsDouble(i, j, k, 0), n_k - k - 1.);
+      }
+    }
+  }
 
   return EXIT_SUCCESS;
 }
@@ -127,10 +190,10 @@ int TestVoxelVectorType(const std::string& tempDir, const std::string& fileExten
 int vtkMRMLVolumeArchetypeStorageNodeTest1(int argc, char* argv[])
 {
   if (argc != 2)
-    {
+  {
     std::cerr << "Usage: " << argv[0] << " /path/to/temp" << std::endl;
     return EXIT_FAILURE;
-    }
+  }
   const char* tempDir = argv[1];
 
   vtkNew<vtkMRMLVolumeArchetypeStorageNode> node1;
@@ -143,6 +206,7 @@ int vtkMRMLVolumeArchetypeStorageNodeTest1(int argc, char* argv[])
   CHECK_EXIT_SUCCESS(TestVoxelVectorType(tempDir, "png",  false,     false,   true,  true));
   CHECK_EXIT_SUCCESS(TestVoxelVectorType(tempDir, "tif",  false,     false,   true,  false));
   CHECK_EXIT_SUCCESS(TestVoxelVectorType(tempDir, "jpg",  false,     false,   true,  false));
+  CHECK_EXIT_SUCCESS(TestFlipsLeftHandedVolumes(tempDir));
 
   std::cout << "Test passed." << std::endl;
   return EXIT_SUCCESS;
