@@ -93,6 +93,11 @@ class VTK_SLICER_TRANSFORMS_MODULE_LOGIC_EXPORT vtkSlicerTransformLogic : public
   static bool GetVisualization3d(vtkPolyData* output_RAS, vtkMRMLTransformDisplayNode* displayNode,
     vtkMRMLNode* regionNode, vtkMRMLMarkupsNode* glyphPointsNode=nullptr);
 
+  /// Generate Coordinates for 3D transform visualization
+  /// If samplePositions_RAS is specified then those samples will be used as glyph starting points instead of a regular grid.
+  /// \sa GetVisualization3d
+  static bool GetCoordVisualization3d(vtkPolyData* output_RAS, vtkMRMLTransformDisplayNode* displayNode);
+
   /// Name of the scalar array that stores the displacement magnitude values
   /// in polydata returned by GetVisualization2d and GetVisualization3d.
   static const char* GetVisualizationDisplacementMagnitudeScalarName();
@@ -176,6 +181,8 @@ protected:
   vtkSlicerTransformLogic(const vtkSlicerTransformLogic&);
   void operator=(const vtkSlicerTransformLogic&);
 
+  
+
   /// Generate glyph for 2D transform visualization
   /// If samplePositions_RAS is specified then those samples will be used as glyph starting points instead of a regular grid.
   /// \sa GetVisualization2d
@@ -186,6 +193,8 @@ protected:
   /// \sa GetVisualization3d
   static void GetGlyphVisualization3d(vtkPolyData* output_RAS, vtkMRMLTransformDisplayNode* displayNode, vtkMatrix4x4* roiToRAS,
     int* roiSize, vtkPoints* samplePositions_RAS = nullptr);
+
+  static void SetPolyDataColor(vtkPolyData* polyData, double r, double g, double b);
 
   /// Generate grid for 2D transform visualization
   /// \sa GetVisualization2d

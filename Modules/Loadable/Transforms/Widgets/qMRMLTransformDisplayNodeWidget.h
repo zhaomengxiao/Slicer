@@ -63,6 +63,7 @@ public slots:
   void setVisibility2d(bool);
   void setVisibility3d(bool);
 
+  void setCoordsVisualizationMode(bool);
   void setGlyphVisualizationMode(bool);
   void setGridVisualizationMode(bool);
   void setContourVisualizationMode(bool);
@@ -70,6 +71,8 @@ public slots:
   void updateGlyphSourceOptions(int sourceOption);
   void regionNodeChanged(vtkMRMLNode* node);
   void glyphPointsNodeChanged(vtkMRMLNode* node);
+
+  void setCoordsScaleFactor(double factor);
   void setGlyphSpacingMm(double spacing);
   void setGlyphScalePercent(double scale);
   void setGlyphDisplayRangeMm(double min, double max);

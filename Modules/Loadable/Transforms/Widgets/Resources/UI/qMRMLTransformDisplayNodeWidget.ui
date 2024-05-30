@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>499</width>
-    <height>969</height>
+    <width>440</width>
+    <height>1014</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,20 +25,526 @@
   <property name="toolTip">
    <string>Whether the transform widget can be translated.</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_6">
-   <property name="leftMargin">
-    <number>4</number>
-   </property>
-   <property name="topMargin">
-    <number>4</number>
-   </property>
-   <property name="rightMargin">
-    <number>4</number>
-   </property>
-   <property name="bottomMargin">
-    <number>4</number>
-   </property>
-   <item row="2" column="0" colspan="3">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <widget class="ctkCollapsibleGroupBox" name="InteractionCollapsibleGroupBox">
+     <property name="title">
+      <string>Interaction</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="collapsed">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_7">
+      <item row="4" column="1">
+       <widget class="QCheckBox" name="InteractionVisible2dCheckBox">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0" colspan="3">
+       <widget class="QFrame" name="InteractiveAdvancedOptions3DFrame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_8">
+         <property name="leftMargin">
+          <number>12</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>12</number>
+         </property>
+         <item row="3" column="1">
+          <widget class="QCheckBox" name="InteractiveScaling3DCheckBox">
+           <property name="toolTip">
+            <string>Enable scaling by manpulating 3D widget (left click and drag the handle at the center of widget face)</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateX3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Y</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateX3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="5" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleViewPlane3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateViewPlane3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>View plane</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleX3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="InteractiveRotationLabel">
+           <property name="text">
+            <string>Enable rotation: </string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateZ3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateY3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QLabel" name="label_14">
+           <property name="text">
+            <string>Z</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateY3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="InteractiveRotation3DCheckBox">
+           <property name="toolTip">
+            <string>Enable translating by manpulating 3D widget (left click and drag anywhere on the widget face)</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateZ3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>X</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="InteractiveScalingLabel">
+           <property name="text">
+            <string>Enable scaling: </string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="5" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateViewPlane3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleZ3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="InteractiveTranslation3DCheckBox">
+           <property name="toolTip">
+            <string>Enable scaling by manpulating 3D widget (shift +left click and drag the handle at the center of widget face, or left click and drag the center handle)</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="InteractiveTranslationLabel">
+           <property name="text">
+            <string>Enable translation: </string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleY3DCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_17">
+        <property name="text">
+         <string>Visibility in 3D view:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="InteractionVisibleCheckBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Show/Hide the transform widget in the 3D view.</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="InteractionVisibleLabel">
+        <property name="text">
+         <string>Visibility: </string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="label_9">
+        <property name="text">
+         <string>Visibility in slice view:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QCheckBox" name="InteractionVisible3dCheckBox">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QPushButton" name="ShowInteractionAdvancedOptionsButton">
+        <property name="text">
+         <string>More options...</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0" colspan="3">
+       <widget class="QFrame" name="InteractiveAdvancedOptionsSliceFrame">
+        <property name="frameShape">
+         <enum>QFrame::NoFrame</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+        <property name="lineWidth">
+         <number>0</number>
+        </property>
+        <layout class="QGridLayout" name="gridLayout_9">
+         <property name="leftMargin">
+          <number>12</number>
+         </property>
+         <property name="topMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>12</number>
+         </property>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_22">
+           <property name="text">
+            <string>Enable rotation: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QCheckBox" name="InteractiveTranslationSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_21">
+           <property name="text">
+            <string>Enable translation: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="4" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateZSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateYSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QCheckBox" name="InteractiveScalingSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="5" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateViewPlaneSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleYSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateXSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QCheckBox" name="InteractiveRotationSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="4" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleZSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleXSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="5" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateViewPlaneSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="label_23">
+           <property name="text">
+            <string>Enable scaling: </string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateZSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="5" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="scaleViewPlaneSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="rotateXSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3" alignment="Qt::AlignHCenter">
+          <widget class="QCheckBox" name="translateYSliceCheckBox">
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>X</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QLabel" name="label_16">
+           <property name="text">
+            <string>Y</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>Z</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="5">
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>View plane</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QLabel" name="label_20">
+        <property name="text">
+         <string>Size:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="1" colspan="2">
+       <widget class="qMRMLSliderWidget" name="interactionHandleScaleSlider">
+        <property name="maximum">
+         <double>100.000000000000000</double>
+        </property>
+        <property name="value">
+         <double>5.000000000000000</double>
+        </property>
+        <property name="suffix">
+         <string>%</string>
+        </property>
+        <property name="quantity">
+         <string notr="true"/>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="ctkCollapsibleGroupBox" name="VisualizationCollapsibleGroupBox">
      <property name="title">
       <string>Visualization</string>
@@ -77,6 +583,38 @@
       </item>
       <item row="3" column="0" colspan="2">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QPushButton" name="CoordsToggle">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Coords</string>
+          </property>
+          <property name="icon">
+           <iconset resource="../qSlicerTransformsModuleWidgets.qrc">
+            <normaloff>:/Icons/CoordsIcon .png</normaloff>:/Icons/CoordsIcon .png</iconset>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>48</width>
+            <height>48</height>
+           </size>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+          <property name="autoExclusive">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QPushButton" name="GlyphToggle">
           <property name="enabled">
@@ -138,7 +676,7 @@
            <bool>true</bool>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="autoExclusive">
            <bool>true</bool>
@@ -1029,6 +1567,68 @@
            </layout>
           </widget>
          </item>
+         <item>
+          <widget class="QFrame" name="CoordsOptions">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Raised</enum>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_6">
+            <item row="0" column="1">
+             <widget class="qMRMLSliderWidget" name="CoordsScaleFactor">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="toolTip">
+               <string>Sampling distance for discretizing the displacement field. Lower values result in more accurate contours, but require more computation time.</string>
+              </property>
+              <property name="decimals">
+               <number>1</number>
+              </property>
+              <property name="singleStep">
+               <double>0.500000000000000</double>
+              </property>
+              <property name="pageStep">
+               <double>1.000000000000000</double>
+              </property>
+              <property name="minimum">
+               <double>0.100000000000000</double>
+              </property>
+              <property name="maximum">
+               <double>20.000000000000000</double>
+              </property>
+              <property name="value">
+               <double>2.000000000000000</double>
+              </property>
+              <property name="quantity">
+               <string notr="true">length</string>
+              </property>
+              <property name="unitAwareProperties">
+               <set>qMRMLSliderWidget::Precision|qMRMLSliderWidget::Prefix|qMRMLSliderWidget::Scaling|qMRMLSliderWidget::Suffix</set>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="CoordsScaleFactorLabel">
+              <property name="toolTip">
+               <string>Sampling distance for discretizing the displacement field. Lower values result in more accurate contours, but require more computation time.</string>
+              </property>
+              <property name="text">
+               <string>Scale</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
         </layout>
        </widget>
       </item>
@@ -1069,7 +1669,7 @@
      </layout>
     </widget>
    </item>
-   <item row="6" column="1">
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -1081,524 +1681,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="0" column="0" colspan="3">
-    <widget class="ctkCollapsibleGroupBox" name="InteractionCollapsibleGroupBox">
-     <property name="title">
-      <string>Interaction</string>
-     </property>
-     <property name="checked">
-      <bool>true</bool>
-     </property>
-     <property name="collapsed">
-      <bool>false</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_7">
-      <item row="4" column="1">
-       <widget class="QCheckBox" name="InteractionVisible2dCheckBox">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="3" column="0" colspan="3">
-       <widget class="QFrame" name="InteractiveAdvancedOptions3DFrame">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="lineWidth">
-         <number>0</number>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_8">
-         <property name="leftMargin">
-          <number>12</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>12</number>
-         </property>
-         <item row="3" column="1">
-          <widget class="QCheckBox" name="InteractiveScaling3DCheckBox">
-           <property name="toolTip">
-            <string>Enable scaling by manpulating 3D widget (left click and drag the handle at the center of widget face)</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateX3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>Y</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateX3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="5" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleViewPlane3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="5" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateViewPlane3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="5">
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>View plane</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="2" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleX3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="InteractiveRotationLabel">
-           <property name="text">
-            <string>Enable rotation: </string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="4" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateZ3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="3" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateY3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>Z</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateY3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="InteractiveRotation3DCheckBox">
-           <property name="toolTip">
-            <string>Enable translating by manpulating 3D widget (left click and drag anywhere on the widget face)</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="4" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateZ3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>X</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="InteractiveScalingLabel">
-           <property name="text">
-            <string>Enable scaling: </string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="5" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateViewPlane3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="4" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleZ3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="InteractiveTranslation3DCheckBox">
-           <property name="toolTip">
-            <string>Enable scaling by manpulating 3D widget (shift +left click and drag the handle at the center of widget face, or left click and drag the center handle)</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="checked">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="InteractiveTranslationLabel">
-           <property name="text">
-            <string>Enable translation: </string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="3" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleY3DCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_17">
-        <property name="text">
-         <string>Visibility in 3D view:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="InteractionVisibleCheckBox">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>Show/Hide the transform widget in the 3D view.</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="InteractionVisibleLabel">
-        <property name="text">
-         <string>Visibility: </string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="0">
-       <widget class="QLabel" name="label_9">
-        <property name="text">
-         <string>Visibility in slice view:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QCheckBox" name="InteractionVisible3dCheckBox">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="ShowInteractionAdvancedOptionsButton">
-        <property name="text">
-         <string>More options...</string>
-        </property>
-        <property name="checkable">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="5" column="0" colspan="3">
-       <widget class="QFrame" name="InteractiveAdvancedOptionsSliceFrame">
-        <property name="frameShape">
-         <enum>QFrame::NoFrame</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
-        <property name="lineWidth">
-         <number>0</number>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_9">
-         <property name="leftMargin">
-          <number>12</number>
-         </property>
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <property name="rightMargin">
-          <number>0</number>
-         </property>
-         <property name="bottomMargin">
-          <number>12</number>
-         </property>
-         <item row="2" column="0">
-          <widget class="QLabel" name="label_22">
-           <property name="text">
-            <string>Enable rotation: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QCheckBox" name="InteractiveTranslationSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_21">
-           <property name="text">
-            <string>Enable translation: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="4" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateZSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="3" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateYSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="1">
-          <widget class="QCheckBox" name="InteractiveScalingSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="5" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateViewPlaneSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="3" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleYSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateXSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QCheckBox" name="InteractiveRotationSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="4" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleZSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="2" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleXSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="5" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateViewPlaneSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_23">
-           <property name="text">
-            <string>Enable scaling: </string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="4" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateZSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="5" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="scaleViewPlaneSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="rotateXSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="3" alignment="Qt::AlignHCenter">
-          <widget class="QCheckBox" name="translateYSliceCheckBox">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>X</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="3">
-          <widget class="QLabel" name="label_16">
-           <property name="text">
-            <string>Y</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="4">
-          <widget class="QLabel" name="label_18">
-           <property name="text">
-            <string>Z</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="5">
-          <widget class="QLabel" name="label_19">
-           <property name="text">
-            <string>View plane</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item row="6" column="0">
-       <widget class="QLabel" name="label_20">
-        <property name="text">
-         <string>Size:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="6" column="1" colspan="2">
-       <widget class="qMRMLSliderWidget" name="interactionHandleScaleSlider">
-        <property name="maximum">
-         <double>100.000000000000000</double>
-        </property>
-        <property name="value">
-         <double>5.000000000000000</double>
-        </property>
-        <property name="suffix">
-         <string>%</string>
-        </property>
-        <property name="quantity">
-         <string notr="true"/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </item>
   </layout>
  </widget>
@@ -1668,12 +1750,12 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>110</x>
-     <y>274</y>
+     <x>216</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>514</y>
+     <x>281</x>
+     <y>690</y>
     </hint>
    </hints>
   </connection>
@@ -1684,12 +1766,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>110</x>
-     <y>274</y>
+     <x>216</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>663</y>
+     <x>281</x>
+     <y>831</y>
     </hint>
    </hints>
   </connection>
@@ -1700,12 +1782,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>110</x>
-     <y>274</y>
+     <x>216</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>763</y>
+     <x>281</x>
+     <y>927</y>
     </hint>
    </hints>
   </connection>
@@ -1716,12 +1798,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>522</x>
-     <y>274</y>
+     <x>308</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>514</y>
+     <x>281</x>
+     <y>690</y>
     </hint>
    </hints>
   </connection>
@@ -1732,12 +1814,12 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>522</x>
-     <y>274</y>
+     <x>308</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>663</y>
+     <x>281</x>
+     <y>831</y>
     </hint>
    </hints>
   </connection>
@@ -1748,12 +1830,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>522</x>
-     <y>274</y>
+     <x>308</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>763</y>
+     <x>281</x>
+     <y>927</y>
     </hint>
    </hints>
   </connection>
@@ -1764,12 +1846,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>779</x>
-     <y>274</y>
+     <x>418</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>514</y>
+     <x>281</x>
+     <y>690</y>
     </hint>
    </hints>
   </connection>
@@ -1780,12 +1862,12 @@
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>779</x>
-     <y>274</y>
+     <x>418</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>663</y>
+     <x>281</x>
+     <y>831</y>
     </hint>
    </hints>
   </connection>
@@ -1796,12 +1878,12 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>779</x>
-     <y>274</y>
+     <x>418</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>255</x>
-     <y>763</y>
+     <x>281</x>
+     <y>927</y>
     </hint>
    </hints>
   </connection>
@@ -1816,8 +1898,8 @@
      <y>450</y>
     </hint>
     <hint type="destinationlabel">
-     <x>779</x>
-     <y>206</y>
+     <x>418</x>
+     <y>391</y>
     </hint>
    </hints>
   </connection>
@@ -1832,8 +1914,8 @@
      <y>648</y>
     </hint>
     <hint type="destinationlabel">
-     <x>761</x>
-     <y>394</y>
+     <x>399</x>
+     <y>576</y>
     </hint>
    </hints>
   </connection>
@@ -1848,8 +1930,8 @@
      <y>613</y>
     </hint>
     <hint type="destinationlabel">
-     <x>661</x>
-     <y>551</y>
+     <x>399</x>
+     <y>730</y>
     </hint>
    </hints>
   </connection>
@@ -1864,8 +1946,8 @@
      <y>610</y>
     </hint>
     <hint type="destinationlabel">
-     <x>632</x>
-     <y>626</y>
+     <x>399</x>
+     <y>801</y>
     </hint>
    </hints>
   </connection>
@@ -1880,8 +1962,8 @@
      <y>602</y>
     </hint>
     <hint type="destinationlabel">
-     <x>565</x>
-     <y>654</y>
+     <x>399</x>
+     <y>827</y>
     </hint>
    </hints>
   </connection>
@@ -1896,8 +1978,8 @@
      <y>594</y>
     </hint>
     <hint type="destinationlabel">
-     <x>426</x>
-     <y>726</y>
+     <x>399</x>
+     <y>897</y>
     </hint>
    </hints>
   </connection>
@@ -1912,8 +1994,8 @@
      <y>663</y>
     </hint>
     <hint type="destinationlabel">
-     <x>520</x>
-     <y>500</y>
+     <x>462</x>
+     <y>681</y>
     </hint>
    </hints>
   </connection>
@@ -1924,12 +2006,12 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>91</x>
-     <y>274</y>
+     <x>216</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>150</x>
-     <y>366</y>
+     <x>140</x>
+     <y>550</y>
     </hint>
    </hints>
   </connection>
@@ -1940,12 +2022,12 @@
    <slot>show()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>91</x>
-     <y>274</y>
+     <x>216</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
-     <x>761</x>
-     <y>366</y>
+     <x>399</x>
+     <y>550</y>
     </hint>
    </hints>
   </connection>
@@ -1960,8 +2042,8 @@
      <y>337</y>
     </hint>
     <hint type="destinationlabel">
-     <x>761</x>
-     <y>366</y>
+     <x>399</x>
+     <y>550</y>
     </hint>
    </hints>
   </connection>
@@ -1972,12 +2054,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>779</x>
-     <y>50</y>
+     <x>419</x>
+     <y>54</y>
     </hint>
     <hint type="destinationlabel">
-     <x>780</x>
-     <y>108</y>
+     <x>419</x>
+     <y>160</y>
     </hint>
    </hints>
   </connection>
@@ -1988,12 +2070,140 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>441</x>
-     <y>39</y>
+     <x>377</x>
+     <y>44</y>
     </hint>
     <hint type="destinationlabel">
      <x>249</x>
      <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>CoordsToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CoordsOptions</receiver>
+   <slot>show()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>78</x>
+     <y>941</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GridToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CoordsScaleFactor</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>257</x>
+     <y>437</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>301</x>
+     <y>956</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>GlyphToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CoordsOptions</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>187</x>
+     <y>439</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>219</x>
+     <y>957</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>CoordsToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GlyphOptions</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>53</x>
+     <y>441</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>45</x>
+     <y>526</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>CoordsToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>GridOptions</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>63</x>
+     <y>443</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>52</x>
+     <y>709</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>CoordsToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>ContourOptions</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>95</x>
+     <y>442</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>67</x>
+     <y>847</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>ContourToggle</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>CoordsOptions</receiver>
+   <slot>hide()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>358</x>
+     <y>441</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>357</x>
+     <y>944</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>qMRMLTransformDisplayNodeWidget</sender>
+   <signal>mrmlSceneChanged(vtkMRMLScene*)</signal>
+   <receiver>CoordsScaleFactor</receiver>
+   <slot>setMRMLScene(vtkMRMLScene*)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>322</x>
+     <y>1008</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>322</x>
+     <y>959</y>
     </hint>
    </hints>
   </connection>

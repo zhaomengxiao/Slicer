@@ -49,6 +49,7 @@ class VTK_MRML_EXPORT vtkMRMLTransformDisplayNode : public vtkMRMLDisplayNode
     VIS_MODE_GLYPH,
     VIS_MODE_GRID,
     VIS_MODE_CONTOUR,
+    VIS_MODE_COORDS,
     VIS_MODE_LAST // this should be the last mode
   };
 
@@ -138,6 +139,9 @@ class VTK_MRML_EXPORT vtkMRMLTransformDisplayNode : public vtkMRMLDisplayNode
   vtkSetMacro(GlyphResolution, int);
   vtkGetMacro(GlyphResolution, int);
 
+  // Coords Parameters
+  vtkSetMacro(CoordsScaleFactor, double);
+  vtkGetMacro(CoordsScaleFactor, double);
   // Grid Parameters
   vtkSetMacro(GridScalePercent, double);
   vtkGetMacro(GridScalePercent, double);
@@ -268,6 +272,9 @@ protected:
   double GlyphDiameterMm;
   double GlyphShaftDiameterPercent;
   int GlyphResolution;
+
+  // Coords Parameters
+  double CoordsScaleFactor{ 2.0 };
 
   // Grid Parameters
   double GridScalePercent;

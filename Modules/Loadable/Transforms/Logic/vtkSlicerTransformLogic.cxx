@@ -79,6 +79,20 @@ or http://www.slicer.org/copyright/copyright.txt for details.
 #include "itkScaleVersor3DTransform.h"
 #include "itkTranslationTransform.h"
 #include "itkTransformFactory.h"
+#include <vtkNamedColors.h>
+
+static const double INTERACTION_HANDLE_RADIUS = 0.5 * 2; // Size of the sphere models used for handles
+static const double INTERACTION_ROTATION_ARC_TUBE_RADIUS = INTERACTION_HANDLE_RADIUS * 0.4; // Radius of the tube connecting the rotation arc.
+
+static const double INTERACTION_WIDGET_RADIUS = INTERACTION_HANDLE_RADIUS * 12.8 ; // Radius of the entire interaction handle widget.
+
+static const double INTERACTION_ROTATION_ARC_RADIUS = INTERACTION_WIDGET_RADIUS * 0.8; // Radius of the rotation arc.
+
+static const double INTERACTION_TRANSLATION_TIP_RADIUS = INTERACTION_HANDLE_RADIUS * 0.75; // Radius of the arrow tip of the translation handle.
+static const double INTERACTION_TRANSLATION_TIP_LENGTH = INTERACTION_TRANSLATION_TIP_RADIUS * 2.0;
+static const double INTERACTION_TRANSLATION_HANDLE_SHAFT_RADIUS = INTERACTION_TRANSLATION_TIP_RADIUS * 0.5; // Size of the tube
+static const double INTERACTION_TRANSLATION_HANDLE_SHAFT_LENGTH = INTERACTION_HANDLE_RADIUS * 12.8; // Length of the translation handle
+
 
 vtkStandardNewMacro(vtkSlicerTransformLogic);
 
@@ -873,6 +887,170 @@ void vtkSlicerTransformLogic::GetGlyphVisualization3d(vtkPolyData* output,
 
   glyphFilter->Update();
   output->ShallowCopy(glyphFilter->GetOutput());
+}
+
+void vtkSlicerTransformLogic::SetPolyDataColor(vtkPolyData* polyData, double r, double g, double b) {
+  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colors->SetNumberOfComponents(3);
+  colors->SetName("Colors");
+
+  vtkIdType numPoints = polyData->GetNumberOfPoints();
+  for (vtkIdType i = 0; i < numPoints; ++i) {
+    colors->InsertNextTuple3(static_cast<unsigned char>(255 * r), static_cast<unsigned char>(255 * g), static_cast<unsigned char>(255 * b));
+  }
+
+  polyData->GetPointData()->SetScalars(colors);
+}
+
+bool vtkSlicerTransformLogic::GetCoordVisualization3d(vtkPolyData* output_RAS, vtkMRMLTransformDisplayNode* displayNode)
+{
+  int oldModify = displayNode->StartModify();
+
+  // Use the color exactly as defined in the colormap
+  // displayNode->AutoScalarRangeOff();
+  // if (displayNode->GetColorNode() && displayNode->GetColorNode()->GetLookupTable())
+  // {
+  //   double* range = displayNode->GetColorNode()->GetLookupTable()->GetRange();
+  //   displayNode->SetScalarRange(range[0], range[1]);
+  // }
+
+  displayNode->SetScalarVisibility(1);
+
+  vtkNew<vtkArrowSource> arrowSource;
+  arrowSource->SetTipRadius(INTERACTION_TRANSLATION_TIP_RADIUS);
+  arrowSource->SetTipLength(INTERACTION_TRANSLATION_TIP_LENGTH / INTERACTION_WIDGET_RADIUS); // Scaled by INTERACTION_WIDGET_RADIUS later
+  arrowSource->SetShaftRadius(INTERACTION_TRANSLATION_HANDLE_SHAFT_RADIUS);
+  arrowSource->SetTipResolution(16);
+  arrowSource->SetShaftResolution(16);
+  arrowSource->InvertOn();
+
+  auto sphereSource = vtkSmartPointer<vtkSphereSource>::New();
+  sphereSource->SetRadius(INTERACTION_HANDLE_RADIUS);
+  sphereSource->SetPhiResolution(16);
+  sphereSource->SetThetaResolution(16);
+
+  vtkNew<vtkTransform> sphereTransform;
+  sphereTransform->Scale(displayNode->GetCoordsScaleFactor(), displayNode->GetCoordsScaleFactor(), displayNode->GetCoordsScaleFactor());
+
+  vtkNew<vtkTransformPolyDataFilter> sphereTransformer;
+  sphereTransformer->SetTransform(sphereTransform);
+  sphereTransformer->SetInputConnection(sphereSource->GetOutputPort());
+
+  vtkNew<vtkTransform> arrowTransform;
+  arrowTransform->Translate(INTERACTION_HANDLE_RADIUS * displayNode->GetCoordsScaleFactor() + INTERACTION_WIDGET_RADIUS * (displayNode->GetCoordsScaleFactor()-1), 0, 0); // Move away from the origin so that it doesn't overlap with the center handle
+  arrowTransform->Scale(INTERACTION_WIDGET_RADIUS * displayNode->GetCoordsScaleFactor(), 1.0 * displayNode->GetCoordsScaleFactor(), 1.0 * displayNode->GetCoordsScaleFactor()); // Increase arrow length to INTERACTION_WIDGET_RADIUS
+  arrowTransform->RotateY(180); // Flip so that the arrow is facing in the +ve X direction.
+
+  vtkNew<vtkTransformPolyDataFilter> arrowTransformer;
+  arrowTransformer->SetTransform(arrowTransform);
+  arrowTransformer->SetInputConnection(arrowSource->GetOutputPort());
+
+  auto TranslationHandlePoints = vtkSmartPointer<vtkPolyData>::New();
+
+  auto TranslationScaleTransform = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  TranslationScaleTransform->SetInputData(TranslationHandlePoints);
+  TranslationScaleTransform->SetTransform(vtkNew<vtkTransform>());
+
+  auto AxesGlypher = vtkSmartPointer<vtkGlyph3D>::New();
+  AxesGlypher->SetInputConnection(TranslationScaleTransform->GetOutputPort());
+  AxesGlypher->SetSourceConnection(0, arrowTransformer->GetOutputPort());
+  AxesGlypher->SetSourceConnection(1, sphereTransformer->GetOutputPort());
+  AxesGlypher->ScalingOn();
+  AxesGlypher->SetScaleModeToDataScalingOff();
+  AxesGlypher->SetIndexModeToScalar();
+  AxesGlypher->SetColorModeToColorByScalar();
+  AxesGlypher->OrientOn();
+  AxesGlypher->SetInputArrayToProcess(0, 0, 0, 0, "glyphIndex"); // Glyph shape
+  AxesGlypher->SetInputArrayToProcess(1, 0, 0, 0, "orientation"); // Orientation direction array
+
+  vtkNew<vtkPoints> points;
+  points->InsertNextPoint(INTERACTION_WIDGET_RADIUS, 0, 0); // X-axis
+  points->InsertNextPoint(0, INTERACTION_WIDGET_RADIUS, 0); // Y-axis
+  points->InsertNextPoint(0, 0, INTERACTION_WIDGET_RADIUS); // Z-axis
+  points->InsertNextPoint(0, 0, 0); // View plane translation
+  TranslationHandlePoints->SetPoints(points);
+
+  vtkNew<vtkDoubleArray> orientationArray;
+  orientationArray->SetName("orientation");
+  orientationArray->SetNumberOfComponents(3);
+  orientationArray->InsertNextTuple3(1, 0, 0);
+  orientationArray->InsertNextTuple3(0, 1, 0);
+  orientationArray->InsertNextTuple3(0, 0, 1);
+  orientationArray->InsertNextTuple3(1, 0, 0); // View plane translation
+  TranslationHandlePoints->GetPointData()->AddArray(orientationArray);
+
+  vtkNew<vtkDoubleArray> glyphIndexArray;
+  glyphIndexArray->SetName("glyphIndex");
+  glyphIndexArray->SetNumberOfComponents(1);
+  glyphIndexArray->InsertNextTuple1(0);
+  glyphIndexArray->InsertNextTuple1(0);
+  glyphIndexArray->InsertNextTuple1(0);
+  glyphIndexArray->InsertNextTuple1(1);
+  TranslationHandlePoints->GetPointData()->AddArray(glyphIndexArray);
+
+
+  vtkNew<vtkIdTypeArray> visibilityArray;
+  visibilityArray->SetName("visibility");
+  visibilityArray->SetNumberOfComponents(1);
+  visibilityArray->SetNumberOfValues(TranslationHandlePoints->GetNumberOfPoints());
+  visibilityArray->Fill(1);
+  TranslationHandlePoints->GetPointData()->AddArray(visibilityArray);
+
+  auto colorArray = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colorArray->SetName("Colors");
+  colorArray->SetNumberOfComponents(3);
+ 
+
+  colorArray->Initialize();
+  colorArray->SetNumberOfTuples(TranslationHandlePoints->GetNumberOfPoints());
+  double red[3] = { 0.80*255, 0.35 * 255, 0.35 * 255 };
+  //double redSelected[3] = { 0.70, 0.07, 0.07 };
+
+  double green[3] = { 0.35 * 255, 0.70 * 255, 0.35 * 255 };
+  //double greenSelected[3] = { 0.00, 0.50, 0.00 };
+
+  double blue[3] = { 0.35 * 255, 0.35 * 255, 0.8 * 255 };
+  //double blueSelected[3] = { 0.07, 0.07, 0.70 };
+
+  double white[3] = { 0.80 * 255, 0.80 * 255, 0.80 * 255 };
+  //double whiteSelected[3] = { 1.00, 1.00, 1.00 };
+
+	colorArray->SetTuple(0, red);
+  colorArray->SetTuple(1, green);
+  colorArray->SetTuple(2, blue);
+  colorArray->SetTuple(3, white);
+
+  TranslationHandlePoints->GetPointData()->SetScalars(colorArray);
+  TranslationHandlePoints->GetPointData()->SetActiveScalars("Colors");
+
+  //update transform
+  vtkNew<vtkTransform> rasToTransform;
+  if (displayNode == nullptr)
+  {
+    vtkWarningWithObjectMacro(displayNode, << "displayNode null");
+	  return false;
+  }
+
+  vtkMRMLTransformNode* transformNode = vtkMRMLTransformNode::SafeDownCast(displayNode->GetDisplayableNode());
+  if (transformNode == nullptr)
+  {
+    vtkWarningWithObjectMacro(displayNode, << "displayalbeNode can not cast to TransformNode");
+    return false;
+  }
+
+  vtkNew<vtkMatrix4x4> t;
+  transformNode->GetMatrixTransformToWorld(t);
+  rasToTransform->SetMatrix(t);
+
+  vtkNew<vtkTransformPolyDataFilter> rasTransformer;
+  rasTransformer->SetTransform(rasToTransform);
+  rasTransformer->SetInputConnection(AxesGlypher->GetOutputPort());
+
+  rasTransformer->Update();
+  output_RAS->DeepCopy(rasTransformer->GetOutput());
+
+  displayNode->EndModify(oldModify);
+  return true;
 }
 
 //----------------------------------------------------------------------------

@@ -157,8 +157,9 @@ void qMRMLTransformDisplayNodeWidgetPrivate
   this->InteractiveAdvancedOptionsSliceFrame->hide();
 
   // Visualization panel
-  // by default the glyph option is selected, so hide the parameter sets for the other options
-  this->GlyphOptions->show();
+  // by default the coords option is selected, so hide the parameter sets for the other options
+  this->CoordsOptions->show();
+  this->GlyphOptions->hide();
   this->ContourOptions->hide();
   this->GridOptions->hide();
 
@@ -168,9 +169,13 @@ void qMRMLTransformDisplayNodeWidgetPrivate
 
   QObject::connect(this->RegionNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(regionNodeChanged(vtkMRMLNode*)));
 
+  QObject::connect(this->CoordsToggle, SIGNAL(toggled(bool)), q, SLOT(setCoordsVisualizationMode(bool)));
   QObject::connect(this->GlyphToggle, SIGNAL(toggled(bool)), q, SLOT(setGlyphVisualizationMode(bool)));
   QObject::connect(this->GridToggle, SIGNAL(toggled(bool)), q, SLOT(setGridVisualizationMode(bool)));
   QObject::connect(this->ContourToggle, SIGNAL(toggled(bool)), q, SLOT(setContourVisualizationMode(bool)));
+
+  // Coords Parameters
+  QObject::connect(this->CoordsScaleFactor, SIGNAL(valueChanged(double)), q, SLOT(setCoordsScaleFactor(double)));
 
   // Glyph Parameters
   QObject::connect(this->GlyphPointsNodeComboBox, SIGNAL(currentNodeChanged(vtkMRMLNode*)), q, SLOT(glyphPointsNodeChanged(vtkMRMLNode*)));
@@ -266,6 +271,7 @@ void qMRMLTransformDisplayNodeWidget
 
   switch (d->TransformDisplayNode->GetVisualizationMode())
   {
+		case vtkMRMLTransformDisplayNode::VIS_MODE_COORDS:d->CoordsToggle->setChecked(true); break;
     case vtkMRMLTransformDisplayNode::VIS_MODE_GLYPH: d->GlyphToggle->setChecked(true); break;
     case vtkMRMLTransformDisplayNode::VIS_MODE_GRID: d->GridToggle->setChecked(true); break;
     case vtkMRMLTransformDisplayNode::VIS_MODE_CONTOUR: d->ContourToggle->setChecked(true); break;
@@ -274,6 +280,9 @@ void qMRMLTransformDisplayNodeWidget
   d->RegionNodeComboBox->setCurrentNode(d->TransformDisplayNode->GetRegionNode());
 
   // Update Visualization Parameters
+  // Coords Parameters
+  d->CoordsScaleFactor->setValue(d->TransformDisplayNode->GetCoordsScaleFactor());
+
   // Glyph Parameters
   d->GlyphPointsNodeComboBox->setCurrentNode(d->TransformDisplayNode->GetGlyphPointsNode());
   d->GlyphSpacingMm->setValue(d->TransformDisplayNode->GetGlyphSpacingMm());
@@ -610,6 +619,16 @@ void qMRMLTransformDisplayNodeWidget::glyphPointsNodeChanged(vtkMRMLNode* node)
   d->TransformDisplayNode->SetAndObserveGlyphPointsNode(node);
 }
 
+void qMRMLTransformDisplayNodeWidget::setCoordsScaleFactor(double factor)
+{
+  Q_D(qMRMLTransformDisplayNodeWidget);
+  if (!d->TransformDisplayNode)
+  {
+    return;
+  }
+  d->TransformDisplayNode->SetCoordsScaleFactor(factor);
+}
+
 //-----------------------------------------------------------------------------
 void qMRMLTransformDisplayNodeWidget::setGlyphSpacingMm(double spacing)
 {
@@ -790,6 +809,19 @@ void qMRMLTransformDisplayNodeWidget::setContourOpacityPercent(double opacityPer
   d->TransformDisplayNode->SetContourOpacity(opacityPercent*0.01);
 }
 
+void qMRMLTransformDisplayNodeWidget::setCoordsVisualizationMode(bool activate)
+{
+  Q_D(qMRMLTransformDisplayNodeWidget);
+  if (!activate)
+  {
+    return;
+  }
+  if (!d->TransformDisplayNode)
+  {
+    return;
+  }
+  d->TransformDisplayNode->SetVisualizationMode(vtkMRMLTransformDisplayNode::VIS_MODE_COORDS);
+}
 
 //-----------------------------------------------------------------------------
 void qMRMLTransformDisplayNodeWidget::setGlyphVisualizationMode(bool activate)

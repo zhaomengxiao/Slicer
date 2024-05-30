@@ -301,13 +301,6 @@ void vtkMRMLTransformsDisplayableManager3D::vtkInternal::UpdateDisplayNodePipeli
     return;
   }
 
-  vtkMRMLNode* regionNode = displayNode->GetRegionNode();
-  if (regionNode==nullptr)
-  {
-    pipeline->Actor->SetVisibility(false);
-    return;
-  }
-
   // Update visibility
   bool visible = this->IsVisible(displayNode);
   pipeline->Actor->SetVisibility(visible);
@@ -316,12 +309,31 @@ void vtkMRMLTransformsDisplayableManager3D::vtkInternal::UpdateDisplayNodePipeli
     return;
   }
 
-  vtkMRMLMarkupsNode* glyphPointsNode = vtkMRMLMarkupsNode::SafeDownCast(displayNode->GetGlyphPointsNode());
-  if (!vtkSlicerTransformLogic::GetVisualization3d(pipeline->InputPolyData, displayNode, regionNode, glyphPointsNode))
+  if (displayNode->GetVisualizationMode()==vtkMRMLTransformDisplayNode::VIS_MODE_COORDS)
   {
-    vtkWarningWithObjectMacro(displayNode, "Failed to show transform in 3D: unsupported ROI type");
-    pipeline->Actor->SetVisibility(false);
-    return;
+	  if (!vtkSlicerTransformLogic::GetCoordVisualization3d(pipeline->InputPolyData,displayNode))
+	  {
+      vtkWarningWithObjectMacro(displayNode, "Failed to show transform in 3D as coordinates");
+      pipeline->Actor->SetVisibility(false);
+      return;
+	  }
+  }
+  else
+  {
+    vtkMRMLNode* regionNode = displayNode->GetRegionNode();
+    if (regionNode == nullptr)
+    {
+      pipeline->Actor->SetVisibility(false);
+      return;
+    }
+
+    vtkMRMLMarkupsNode* glyphPointsNode = vtkMRMLMarkupsNode::SafeDownCast(displayNode->GetGlyphPointsNode());
+    if (!vtkSlicerTransformLogic::GetVisualization3d(pipeline->InputPolyData, displayNode, regionNode, glyphPointsNode))
+    {
+      vtkWarningWithObjectMacro(displayNode, "Failed to show transform in 3D: unsupported ROI type");
+      pipeline->Actor->SetVisibility(false);
+      return;
+    }
   }
 
   if (pipeline->InputPolyData->GetNumberOfPoints()==0)
@@ -330,8 +342,7 @@ void vtkMRMLTransformsDisplayableManager3D::vtkInternal::UpdateDisplayNodePipeli
     return;
   }
 
-  // Update pipeline actor
-  this->SetTransformDisplayProperty(displayNode, pipeline->Actor);
+	this->SetTransformDisplayProperty(displayNode, pipeline->Actor);
 }
 
 //---------------------------------------------------------------------------
@@ -402,20 +413,31 @@ void vtkMRMLTransformsDisplayableManager3D::vtkInternal::SetTransformDisplayProp
   bool scalarVisibility = false;
   if (displayNode->GetScalarVisibility())
   {
-    vtkColorTransferFunction* colorTransferFunction=displayNode->GetColorMap();
-    if (colorTransferFunction != nullptr && colorTransferFunction->GetSize()>0)
+    // coords don't use DisplacementMagnitude to colorize
+    if (displayNode->GetVisualizationMode() == vtkMRMLTransformDisplayNode::VIS_MODE_COORDS)
     {
-      // Copy the transfer function to not share them between multiple mappers
-      vtkNew<vtkColorTransferFunction> colorTransferFunctionCopy;
-      colorTransferFunctionCopy->DeepCopy(colorTransferFunction);
-      mapper->SetLookupTable(colorTransferFunctionCopy.GetPointer());
+      mapper->SetScalarModeToDefault();
+      mapper->SetColorModeToDefault();
       mapper->SetScalarModeToUsePointData();
-      mapper->SetColorModeToMapScalars();
-      mapper->SelectColorArray(vtkSlicerTransformLogic::GetVisualizationDisplacementMagnitudeScalarName());
-      mapper->UseLookupTableScalarRangeOff();
-      mapper->SetScalarRange(displayNode->GetScalarRange());
-      scalarVisibility = true;
+      //vtkWarningWithObjectMacro(this->External, << "reset mapper for VIS_MODE_COORDS");
     }
+    else
+    {
+      vtkColorTransferFunction* colorTransferFunction = displayNode->GetColorMap();
+      if (colorTransferFunction != nullptr && colorTransferFunction->GetSize() > 0)
+      {
+        // Copy the transfer function to not share them between multiple mappers
+        vtkNew<vtkColorTransferFunction> colorTransferFunctionCopy;
+        colorTransferFunctionCopy->DeepCopy(colorTransferFunction);
+        mapper->SetLookupTable(colorTransferFunctionCopy.GetPointer());
+        mapper->SetScalarModeToUsePointData();
+        mapper->SetColorModeToMapScalars();
+        mapper->SelectColorArray(vtkSlicerTransformLogic::GetVisualizationDisplacementMagnitudeScalarName());
+        mapper->UseLookupTableScalarRangeOff();
+        mapper->SetScalarRange(displayNode->GetScalarRange());
+      }
+    }
+    scalarVisibility = true;
   }
   mapper->SetScalarVisibility(scalarVisibility);
 

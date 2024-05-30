@@ -64,7 +64,8 @@ vtkMRMLTransformDisplayNode::vtkMRMLTransformDisplayNode()
   this->ScalarVisibility=1;
   this->SetActiveScalarName(DISPLACEMENT_MAGNITUDE_SCALAR_NAME);
 
-  this->VisualizationMode=VIS_MODE_GLYPH;
+  //this->VisualizationMode=VIS_MODE_GLYPH;
+  this->VisualizationMode = VIS_MODE_COORDS; //change default vis mode to coordinates
 
   this->GlyphSpacingMm=10.0;
   this->GlyphScalePercent=100;
@@ -435,6 +436,7 @@ const char* vtkMRMLTransformDisplayNode::ConvertVisualizationModeToString(int mo
     case VIS_MODE_GLYPH: return "GLYPH";
     case VIS_MODE_GRID: return "GRID";
     case VIS_MODE_CONTOUR: return "CONTOUR";
+    case VIS_MODE_COORDS: return "COORDS";
     default: return "";
   }
 }
