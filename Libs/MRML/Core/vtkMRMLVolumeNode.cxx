@@ -22,6 +22,7 @@ Version:   $Revision: 1.14 $
 #include "vtkMRMLTransformNode.h"
 
 // VTK includes
+#include <vtkAddonMathUtilities.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkAppendPolyData.h>
 #include <vtkBoundingBox.h>
@@ -31,15 +32,19 @@ Version:   $Revision: 1.14 $
 #include <vtkHomogeneousTransform.h>
 #include <vtkImageData.h>
 #include <vtkImageDataGeometryFilter.h>
+#include <vtkImageFlip.h>
 #include <vtkImageReslice.h>
 #include <vtkMathUtilities.h>
+#include <vtkMatrix3x3.h>
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
+#include <vtkPointData.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransform.h>
 #include <vtkTrivialProducer.h>
 
 #include <algorithm> // For std::min
+#include <array>
 #include <cassert>
 #include <vector>
 
@@ -1345,4 +1350,109 @@ int vtkMRMLVolumeNode::GetVoxelVectorTypeFromString(const char* name)
   }
   // unknown name
   return -1;
+}
+
+//----------------------------------------------------------------------------
+bool vtkMRMLVolumeNode::IsIJKCoordinateSystemRightHanded(vtkMatrix4x4* ijkToRasMatrix)
+{
+  // Check if the determinant of the orientation matrix is less than 0.
+  vtkNew<vtkMatrix3x3> orientation;
+  vtkAddonMathUtilities::GetOrientationMatrix(ijkToRasMatrix, orientation);
+  return orientation->Determinant() >= 0.;
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeNode::FlipIJKCoordinateSystemHandedness(vtkImageData* imageData, vtkMatrix4x4* ijkToRasMatrix)
+{
+  if (ijkToRasMatrix == nullptr)
+  {
+    vtkGenericWarningMacro("vtkMRMLVolumeNode::FlipIJKCoordinateSystemHandedness failed: ijkToRasMatrix is invalid");
+    return;
+  }
+  int imageDimensions[3] = { 0, 0, 0 };
+  if (imageData && imageData->GetPointData())
+  {
+    // Flip third image axis (K) direction
+
+    // In DTI data sets, data is stored in tensors (scalars is nullptr),
+    // but vtkImageFlip always works on the scalar data array, so we need to temporarily
+    // move the data array that contains the data to the scalar data array.
+    vtkPointData* pointData = imageData->GetPointData();
+    vtkDataArray* pointDataArray = nullptr;
+    int pointDataType = -1;
+    std::array<int, 4> candidatePointDataTypes
+      = { vtkDataSetAttributes::SCALARS, vtkDataSetAttributes::VECTORS, vtkDataSetAttributes::NORMALS, vtkDataSetAttributes::TENSORS };
+    for (int candidatePointDataType : candidatePointDataTypes)
+    {
+      vtkDataArray* candidatePointDataArray = pointData->GetAttribute(candidatePointDataType);
+      if (candidatePointDataArray == nullptr)
+      {
+        continue;
+      }
+      // Found a valid data array
+      if (pointDataType == -1)
+      {
+        // There has not been any other data arrays
+        pointDataArray = candidatePointDataArray;
+        pointDataType = candidatePointDataType;
+      }
+      else
+      {
+        // There has been other data arrays, log a warning because we only flip the first one
+        vtkGenericWarningMacro("vtkMRMLVolumeNode::FlipIJKCoordinateSystemHandedness: Multiple types of point data arrays were found,"
+          " only the " << vtkDataSetAttributes::GetAttributeTypeAsString(pointDataType) << " array will be flipped");
+      }
+    }
+
+    if (pointDataType != -1)
+    {
+      // There is data to process
+      vtkNew<vtkImageFlip> flip;
+      flip->SetFilteredAxes(2);
+      flip->SetInputData(imageData);
+      if (pointDataType != vtkDataSetAttributes::SCALARS)
+      {
+        // Temporarily move the data array to the scalar data array
+        // because vtkImageFlip always processes the scalar data array
+        vtkSmartPointer<vtkDataArray> dataArrayToFlip = pointDataArray;
+        imageData->GetPointData()->SetAttribute(nullptr, pointDataType);
+        pointData->SetScalars(dataArrayToFlip);
+      }
+      flip->Update();
+      imageData->ShallowCopy(flip->GetOutput());
+      if (pointDataType != vtkDataSetAttributes::SCALARS)
+      {
+        // Move the processed data array back to where it was
+        vtkSmartPointer<vtkDataArray> flippedDataArray = imageData->GetPointData()->GetScalars();
+        imageData->GetPointData()->SetScalars(nullptr);
+        imageData->GetPointData()->SetAttribute(flippedDataArray, pointDataType);
+      }
+      imageData->GetDimensions(imageDimensions);
+    }
+  }
+
+  // Update rasToIJK to reflect flip around the third axis and shift of the origin to the opposite corner.
+  vtkNew<vtkTransform> flipTransform;
+  flipTransform->Concatenate(ijkToRasMatrix);
+  if (imageDimensions[2] > 1)
+  {
+    // There are more than 1 slice in the image, move the origin to the opposite corner
+    flipTransform->Translate(0.0, 0.0, imageDimensions[2] - 1);
+  }
+  flipTransform->Scale(1.0, 1.0, -1.0);
+  flipTransform->GetMatrix(ijkToRasMatrix);
+}
+
+//----------------------------------------------------------------------------
+void vtkMRMLVolumeNode::SetIJKCoordinateSystemToRightHanded()
+{
+  vtkNew<vtkMatrix4x4> ijkToRAS;
+  this->GetIJKToRASMatrix(ijkToRAS);
+  if (vtkMRMLVolumeNode::IsIJKCoordinateSystemRightHanded(ijkToRAS))
+  {
+    // already right-handed
+    return;
+  }
+  vtkMRMLVolumeNode::FlipIJKCoordinateSystemHandedness(this->GetImageData(), ijkToRAS);
+  this->SetIJKToRASMatrix(ijkToRAS);
 }

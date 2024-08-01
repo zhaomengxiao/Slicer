@@ -33,14 +33,18 @@
 // Slicer includes
 #include "vtkLoggingMacros.h"
 
+// vtkSegmentationCore includes
+#include <vtkSegment.h>
+
 // VTK includes
+#include <vtkCollection.h>
+#include <vtkDirectory.h>
 #include <vtkNew.h>
-#include <vtkSmartPointer.h>
 #include <vtkObjectFactory.h>
+#include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtkVariant.h>
 #include <vtksys/SystemTools.hxx>
-#include <vtkDirectory.h>
 
 // STD includes
 #include <algorithm>
@@ -1541,7 +1545,8 @@ bool vtkSlicerTerminologiesModuleLogic::GetTypesInTerminologyCategory(std::strin
 
 //---------------------------------------------------------------------------
 bool vtkSlicerTerminologiesModuleLogic::FindTypesInTerminologyCategory(
-  std::string terminologyName, CodeIdentifier categoryId, std::vector<CodeIdentifier>& types, std::string search)
+  std::string terminologyName, CodeIdentifier categoryId, std::vector<CodeIdentifier>& types, std::string search,
+  std::vector<vtkSmartPointer<vtkSlicerTerminologyType>> *typeObjects/*=nullptr*/)
 {
   types.clear();
 
@@ -1576,6 +1581,12 @@ bool vtkSlicerTerminologiesModuleLogic::FindTypesInTerminologyCategory(
         {
           CodeIdentifier typeId(typeCodingSchemeDesignator.GetString(), typeCodeValue.GetString(), typeNameStr);
           types.push_back(typeId);
+          if (typeObjects)
+          {
+            vtkSmartPointer<vtkSlicerTerminologyType> typeObject = vtkSmartPointer<vtkSlicerTerminologyType>::New();
+            this->Internal->PopulateTerminologyTypeFromJson(type, typeObject);
+            typeObjects->push_back(typeObject);
+          }
         }
       }
       else
@@ -1649,8 +1660,7 @@ bool vtkSlicerTerminologiesModuleLogic::GetTypeInTerminologyCategory(
   rapidjson::Value& typeObject = this->Internal->GetTypeInTerminologyCategory(terminologyName, categoryId, typeId);
   if (typeObject.IsNull())
   {
-    vtkErrorMacro("GetTypeInTerminologyCategory: Failed to find type '" << typeId.CodeMeaning << "' in category '"
-      << categoryId.CodeMeaning << "' in terminology '" << terminologyName << "'");
+    // Not found. This is not an error, as the type may not exist in the terminology and this method can be used to check for existence.
     return false;
   }
 
@@ -2431,4 +2441,234 @@ bool vtkSlicerTerminologiesModuleLogic::FindTypeInTerminologyBy3dSlicerLabel(std
   }
 
   return false;
+}
+
+//-----------------------------------------------------------------------------
+std::vector<std::string> vtkSlicerTerminologiesModuleLogic::FindTerminologyNames(
+  std::string categoryCodingSchemeDesignator, std::string categoryCodeValue,
+  std::string typeCodingSchemeDesignator, std::string typeCodeValue,
+  std::string typeModifierCodingSchemeDesignator, std::string typeModifierCodeValue,
+  std::vector<std::string> preferredTerminologyNames,
+  vtkCollection* foundEntries/*=nullptr*/)
+{
+  std::vector<std::string> foundTerminologyNames;
+  if (categoryCodingSchemeDesignator.empty() || categoryCodeValue.empty())
+  {
+    vtkErrorMacro("FindTerminologyEntries: Category is not specified");
+    return foundTerminologyNames;
+  }
+  CodeIdentifier categoryId(categoryCodingSchemeDesignator, categoryCodeValue);
+
+  if (typeCodingSchemeDesignator.empty() || typeCodeValue.empty())
+  {
+    vtkErrorMacro("FindTerminologyEntries: Type is not specified");
+    return foundTerminologyNames;
+  }
+  CodeIdentifier typeId(typeCodingSchemeDesignator, typeCodeValue);
+
+  if (preferredTerminologyNames.empty())
+  {
+    // Terminology names are not specified, so search in all available terminologies
+    this->GetLoadedTerminologyNames(preferredTerminologyNames);
+  }
+
+  // Find terminology entries in each preferred terminology
+  for (std::string terminologyName : preferredTerminologyNames)
+  {
+    vtkNew<vtkSlicerTerminologyType> typeObject;
+    if (!this->GetTypeInTerminologyCategory(terminologyName, categoryId, typeId, typeObject))
+    {
+      continue;
+    }
+    if (typeModifierCodingSchemeDesignator.empty() && typeModifierCodeValue.empty())
+    {
+      // Type without modifier
+      foundTerminologyNames.push_back(terminologyName);
+      if (foundEntries)
+      {
+        foundEntries->AddItem(typeObject);
+      }
+    }
+    else
+    {
+      // Type with a modifier
+      vtkNew<vtkSlicerTerminologyType> modifiedTypeObject;
+      if (this->GetTypeModifierInTerminologyType(terminologyName, categoryId, typeId,
+        CodeIdentifier(typeModifierCodingSchemeDesignator, typeModifierCodeValue), modifiedTypeObject))
+      {
+        foundTerminologyNames.push_back(terminologyName);
+        foundEntries->AddItem(typeObject);
+      }
+    }
+  }
+
+  return foundTerminologyNames;
+}
+
+//-----------------------------------------------------------------------------
+std::vector<std::string> vtkSlicerTerminologiesModuleLogic::FindAnatomicContextNames(
+  std::string anatomicRegionCodingSchemeDesignator, std::string anatomicRegionCodeValue,
+  std::string anatomicRegionModifierCodingSchemeDesignator, std::string anatomicRegionModifierCodeValue,
+  std::vector<std::string> preferredAnatomicContextNames,
+  vtkCollection* foundEntries/*=nullptr*/)
+{
+  std::vector<std::string> foundAnatomicContextNames;
+  if (anatomicRegionCodingSchemeDesignator.empty() || anatomicRegionCodeValue.empty())
+  {
+    vtkErrorMacro("FindAnatomicContextNames: anatomicRegion is not specified");
+    return foundAnatomicContextNames;
+  }
+  CodeIdentifier anatomicRegionId(anatomicRegionCodingSchemeDesignator, anatomicRegionCodeValue);
+
+  if (preferredAnatomicContextNames.empty())
+  {
+    // Anatomic context names are not specified, so search in all available terminologies
+    this->GetLoadedAnatomicContextNames(preferredAnatomicContextNames);
+  }
+
+  // Find terminology entries in each preferred anatomic context
+  for (std::string anatomicContextName : preferredAnatomicContextNames)
+  {
+    vtkNew<vtkSlicerTerminologyType> regionObject;
+    if (!this->GetRegionInAnatomicContext(anatomicContextName, anatomicRegionId, regionObject))
+    {
+      continue;
+    }
+    if (anatomicRegionModifierCodingSchemeDesignator.empty() && anatomicRegionModifierCodeValue.empty())
+    {
+      // Anatomic region without modifier
+      foundAnatomicContextNames.push_back(anatomicContextName);
+      if (foundEntries)
+      {
+        foundEntries->AddItem(regionObject);
+      }
+    }
+    else
+    {
+      // Anatomic region with a modifier
+      vtkNew<vtkSlicerTerminologyType> modifiedRegionObject;
+      if (this->GetRegionModifierInAnatomicRegion(anatomicContextName, anatomicRegionId,
+        CodeIdentifier(anatomicRegionModifierCodingSchemeDesignator, anatomicRegionModifierCodeValue), modifiedRegionObject))
+      {
+        foundAnatomicContextNames.push_back(anatomicContextName);
+        if (foundEntries)
+        {
+          foundEntries->AddItem(regionObject);
+        }
+      }
+    }
+  }
+
+  return foundAnatomicContextNames;
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerTerminologiesModuleLogic::AreSegmentTerminologyEntriesEqual(vtkSegment* segment1, vtkSegment* segment2)
+{
+  if (!segment1 || !segment2)
+  {
+    vtkErrorMacro("AreSegmentTerminologyEntriesEqual: Invalid segment");
+    return false;
+  }
+
+  std::string terminologyEntry1;
+  segment1->GetTag(vtkSegment::GetTerminologyEntryTagName(), terminologyEntry1);
+
+  std::string terminologyEntry2;
+  segment2->GetTag(vtkSegment::GetTerminologyEntryTagName(), terminologyEntry2);
+
+  return this->AreTerminologyEntriesEqual(terminologyEntry1, terminologyEntry2);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerTerminologiesModuleLogic::AreTerminologyEntriesEqual(std::string terminologyEntry1, std::string terminologyEntry2)
+{
+  if (terminologyEntry1.empty() && terminologyEntry2.empty())
+  {
+    return true;
+  }
+
+  vtkNew<vtkSlicerTerminologyEntry> entry1;
+  if (!this->DeserializeTerminologyEntry(terminologyEntry1, entry1))
+  {
+    if (!terminologyEntry1.empty())
+    {
+      vtkErrorMacro("AreTerminologyEntriesEqual: Failed to deserialize terminology entry");
+    }
+    return false;
+  }
+
+  vtkNew<vtkSlicerTerminologyEntry> entry2;
+  if (!this->DeserializeTerminologyEntry(terminologyEntry2, entry2))
+  {
+    if (!terminologyEntry2.empty())
+    {
+      vtkErrorMacro("AreTerminologyEntriesEqual: Failed to deserialize terminology entry");
+    }
+    return false;
+  }
+
+  return this->AreTerminologyEntriesEqual(entry1, entry2);
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerTerminologiesModuleLogic::AreTerminologyEntriesEqual(vtkSlicerTerminologyEntry* entry1, vtkSlicerTerminologyEntry* entry2)
+{
+  if (!entry1 || !entry2)
+  {
+    // Return true if both are nullptr, false if only one is nullptr
+    return entry1 == entry2;
+  }
+
+  return this->AreCodedEntriesEqual(entry1->GetCategoryObject(), entry2->GetCategoryObject())
+      && this->AreCodedEntriesEqual(entry1->GetTypeObject(), entry2->GetTypeObject())
+      && this->AreCodedEntriesEqual(entry1->GetTypeModifierObject(), entry2->GetTypeModifierObject())
+      && this->AreCodedEntriesEqual(entry1->GetAnatomicRegionObject(), entry2->GetAnatomicRegionObject())
+      && this->AreCodedEntriesEqual(entry1->GetAnatomicRegionModifierObject(), entry2->GetAnatomicRegionModifierObject());
+}
+
+//-----------------------------------------------------------------------------
+bool vtkSlicerTerminologiesModuleLogic::AreCodedEntriesEqual(vtkCodedEntry* codedEntry1, vtkCodedEntry* codedEntry2)
+{
+  if (!codedEntry1 || !codedEntry2)
+  {
+    // Return true if both are nullptr, false if only one is nullptr
+    return codedEntry1 == codedEntry2;
+  }
+
+  const char* schemeDesignator1 = codedEntry1->GetCodingSchemeDesignator();
+  bool schemeDesignator1Empty = (schemeDesignator1 == nullptr || strlen(schemeDesignator1) == 0);
+  const char* schemeDesignator2 = codedEntry2->GetCodingSchemeDesignator();
+  bool schemeDesignator2Empty = (schemeDesignator2 == nullptr || strlen(schemeDesignator2) == 0);
+  if (!schemeDesignator1Empty && !schemeDesignator2Empty)
+  {
+    if (strcmp(schemeDesignator1, schemeDesignator2) != 0)
+    {
+      return false;
+    }
+  }
+  else if (!schemeDesignator1Empty || !schemeDesignator2Empty)
+  {
+    // One is nullptr/empty, the other is not
+    return false;
+  }
+
+  const char* codeValue1 = codedEntry1->GetCodeValue();
+  bool codeValue1Empty = (codeValue1 == nullptr || strlen(codeValue1) == 0);
+  const char* codeValue2 = codedEntry2->GetCodeValue();
+  bool codeValue2Empty = (codeValue2 == nullptr || strlen(codeValue2) == 0);
+  if (!codeValue1Empty && !codeValue2Empty)
+  {
+    if (strcmp(codeValue1, codeValue2) != 0)
+    {
+      return false;
+    }
+  }
+  else if (!codeValue1Empty || !codeValue2Empty)
+  {
+    // One is nullptr/empty, the other is not
+    return false;
+  }
+
+  return true;
 }
