@@ -37,6 +37,14 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
     QUIET
     )
 
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}libarchive-3.6.1.zip")
+    set(verifyCode URL_MD5 "52361db733a02aa8f68b2c6e674e5194")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif(BUILD_LOCAL)
+
   # When updating the version of LibArchive, consider also
   # updating the soversion number hard-coded below in the
   # "fix_rpath" macOS external project step.
@@ -53,8 +61,9 @@ if((NOT DEFINED LibArchive_INCLUDE_DIR
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     INSTALL_DIR ${EP_INSTALL_DIR}

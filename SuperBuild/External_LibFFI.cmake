@@ -42,10 +42,19 @@ if((NOT DEFINED LibFFI_INCLUDE_DIR
     QUIET
     )
 
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}libffi-libffi-cmake-buildsystem-v3.4.2-2021-06-28-f9ea416.zip")
+    set(verifyCode URL_MD5 "645fa3ef685f1e9e96a856c7b57c59a6")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif(BUILD_LOCAL)
+
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     INSTALL_DIR ${EP_INSTALL_DIR}

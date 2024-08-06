@@ -31,13 +31,22 @@ if(NOT DEFINED ${proj}_DIR AND NOT Slicer_USE_SYSTEM_${proj})
     QUIET
     )
 
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}rapidjson-973dc9c06dcd3d035ebd039cfb9ea457721ec213.zip")
+    set(verifyCode URL_MD5 "4bae11a5b961b8142d435366f3270ccf")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif(BUILD_LOCAL)
+
   set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
   set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS

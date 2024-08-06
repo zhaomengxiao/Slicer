@@ -25,12 +25,21 @@ if(NOT SWIG_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
   if(WIN32)
     set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/swigwin-${SWIG_TARGET_VERSION})
-
+    
+    if(BUILD_LOCAL)
+      set(url "${EP_LOCAL_PATH}swigwin-4.0.2.zip")
+      set(sha512 "SHA512=b8f105f9b9db6acc1f6e3741990915b533cd1bc206eb9645fd6836457fd30789b7229d2e3219d8e35f2390605ade0fbca493ae162ec3b4bc4e428b57155db03d")
+    else()
+      set(url "https://github.com/Slicer/SlicerBinaryDependencies/releases/download/swig/swigwin-${SWIG_TARGET_VERSION}.zip")
+      set(sha512 "SHA512=${SWIG_DOWNLOAD_WIN_HASH}")
+    endif(BUILD_LOCAL)
+    
     # swig.exe available as pre-built binary on Windows:
     ExternalProject_Add(Swig
       ${EXTERNAL_PROJECT_OPTIONAL_ARGS}
-      URL https://github.com/Slicer/SlicerBinaryDependencies/releases/download/swig/swigwin-${SWIG_TARGET_VERSION}.zip
-      URL_HASH SHA512=${SWIG_DOWNLOAD_WIN_HASH}
+      URL ${url}
+      URL_HASH ${sha512}
+      DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
       SOURCE_DIR "${EP_BINARY_DIR}"
       CONFIGURE_COMMAND ""
       BUILD_COMMAND ""

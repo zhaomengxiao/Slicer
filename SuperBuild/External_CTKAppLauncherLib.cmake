@@ -37,11 +37,21 @@ if(NOT DEFINED CTKAppLauncherLib_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
   set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
   set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
-
+  
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}AppLauncher-8759e03.zip")
+    set(verifyCode URL_MD5 "ea944337a65f1b77d0987d5838c74cd6")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif(BUILD_LOCAL)
+  
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
+    GIT_TAG ${Slicer_${proj}_GIT_TAG}
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS

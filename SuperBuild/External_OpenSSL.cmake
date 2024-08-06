@@ -302,10 +302,18 @@ this version of visual studio [${MSVC_VERSION}]. You could either:
     #------------------------------------------------------------------------------
     set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
 
+    if(BUILD_LOCAL)
+      set(url ${EP_LOCAL_PATH}OpenSSL_1_1_1g-install-msvc1900-64.tar.gz)
+      set(md5 f89ea6a4fcfb279af30cbe01c1d7f879)
+    else()
+      set(url ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_${MSVC_VERSION}_URL})
+      set(md5 ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_${MSVC_VERSION}_MD5})
+    endif(BUILD_LOCAL)
+
     ExternalProject_Add(${proj}
       ${${proj}_EP_ARGS}
-      URL ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_${MSVC_VERSION}_URL}
-      URL_MD5 ${OpenSSL_${OPENSSL_DOWNLOAD_VERSION}_${MSVC_VERSION}_MD5}
+      URL ${url}
+      URL_MD5 ${md5}
       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
       SOURCE_DIR ${EP_SOURCE_DIR}
       CONFIGURE_COMMAND ""

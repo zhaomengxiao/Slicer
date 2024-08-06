@@ -89,13 +89,22 @@ if(NOT DEFINED SlicerExecutionModel_DIR AND NOT Slicer_USE_SYSTEM_${proj})
     QUIET
     )
 
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}SlicerExecutionModel-master.zip")
+    set(verifyCode URL_MD5 "b1fe5e5969f26ee8ccda5e915892b462")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif(BUILD_LOCAL)
+
   set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
   set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS

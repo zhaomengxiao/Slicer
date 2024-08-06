@@ -73,10 +73,19 @@ if((NOT DEFINED CURL_INCLUDE_DIR
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_ARGS})
   endif()
 
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}curl-slicer-7.70.0-2020-04-29-53cdc2c.zip")
+    set(verifyCode URL_MD5 "58de60c7085e8a4ecec2ab336124de2a")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif()
+
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS

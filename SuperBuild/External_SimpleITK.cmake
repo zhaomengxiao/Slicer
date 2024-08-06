@@ -169,13 +169,23 @@ ExternalProject_Execute(${proj} \"install\" \"${PYTHON_EXECUTABLE}\" \"-m\" \"pi
     QUIET
     )
 
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}SimpleITK-slicer-v2.3.1-2024-05-20-bc4449e.zip")
+    set(verifyCode URL_MD5 "b710e35c29d39a1fd66f503a28fdf31b")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif(BUILD_LOCAL)
+
+
   # A separate project is used to download, so that the SuperBuild
   # subdirectory can be use for SimpleITK's SuperBuild to build
   # required Lua, GTest etc. dependencies not in Slicer SuperBuild
   ExternalProject_add(SimpleITK-download
     SOURCE_DIR ${EP_SOURCE_DIR}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     CONFIGURE_COMMAND ""
     INSTALL_COMMAND ""
     BUILD_COMMAND ""

@@ -50,9 +50,15 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
    OR NOT DEFINED PYTHON_EXECUTABLE) AND NOT Slicer_USE_SYSTEM_${proj})
 
   set(python_SOURCE_DIR "${CMAKE_BINARY_DIR}/Python-${Slicer_REQUIRED_PYTHON_VERSION}")
-
-  set(_download_3.9.10_url "https://www.python.org/ftp/python/3.9.10/Python-3.9.10.tgz")
-  set(_download_3.9.10_md5 "1440acb71471e2394befdb30b1a958d1")
+  
+  if(BUILD_LOCAL)
+    message("python build local")
+    set(_download_3.9.10_url ${EP_LOCAL_PATH}Python-3.9.10.tgz)
+    set(_download_3.9.10_md5 "1440acb71471e2394befdb30b1a958d1")
+  else()
+    set(_download_3.9.10_url "https://www.python.org/ftp/python/3.9.10/Python-3.9.10.tgz")
+    set(_download_3.9.10_md5 "1440acb71471e2394befdb30b1a958d1")
+  endif(BUILD_LOCAL)
 
   set(EXTERNAL_PROJECT_OPTIONAL_ARGS)
   if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.24")
@@ -135,6 +141,14 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
     QUIET
     )
 
+  if(BUILD_LOCAL)
+    set(soucePath URL "${EP_LOCAL_PATH}python-cmake-buildsystem-bb45aa7a4cfc7a5a93bc490c6158f702d1a2226f.zip")
+    set(verifyCode URL_MD5 "66c4b98884e91139a5544057c56d2c82")
+  else()
+    set(soucePath GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}")
+    set(verifyCode GIT_TAG "${Slicer_${proj}_GIT_TAG}")
+  endif(BUILD_LOCAL)
+
   set(EP_SOURCE_DIR ${CMAKE_BINARY_DIR}/${proj})
   set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
   set(EP_INSTALL_DIR ${CMAKE_BINARY_DIR}/${proj}-install)
@@ -148,8 +162,9 @@ if((NOT DEFINED PYTHON_INCLUDE_DIR
 
   ExternalProject_Add(${proj}
     ${${proj}_EP_ARGS}
-    GIT_REPOSITORY "${Slicer_${proj}_GIT_REPOSITORY}"
-    GIT_TAG "${Slicer_${proj}_GIT_TAG}"
+    ${soucePath}
+    ${verifyCode}
+    DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
     SOURCE_DIR ${EP_SOURCE_DIR}
     BINARY_DIR ${EP_BINARY_DIR}
     CMAKE_CACHE_ARGS

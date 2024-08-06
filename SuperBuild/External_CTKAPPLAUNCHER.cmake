@@ -38,9 +38,17 @@ if(Slicer_USE_CTKAPPLAUNCHER)
     set(EP_BINARY_DIR ${CMAKE_BINARY_DIR}/${proj})
 
     set(CTKAppLauncherFileName CTKAppLauncher-${launcher_version}-${CTKAPPLAUNCHER_OS}-${CTKAPPLAUNCHER_ARCHITECTURE}.tar.gz)
+  
+    if(BUILD_LOCAL)
+      set(url ${EP_LOCAL_PATH}CTKAppLauncher-0.1.31-win-i386.tar.gz)
+      set(md5 3bbe3823b6950f342dd922fab32d643d)
+    else()
+      set(url https://github.com/commontk/AppLauncher/releases/download/v${launcher_version}/${CTKAppLauncherFileName})
+    endif()
+    
     ExternalProject_Add(${proj}
       ${${proj}_EP_ARGS}
-      URL https://github.com/commontk/AppLauncher/releases/download/v${launcher_version}/${CTKAppLauncherFileName}
+      URL ${url}
       URL_MD5 ${md5}
       DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
       SOURCE_DIR ${EP_BINARY_DIR}

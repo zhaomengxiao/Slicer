@@ -199,12 +199,19 @@ endmacro()
 #------------------------------------------------------------------------------
 # Include remote libraries
 #------------------------------------------------------------------------------
-
-Slicer_Remote_Add(vtkAddon
-  GIT_REPOSITORY "${EP_GIT_PROTOCOL}://github.com/Slicer/vtkAddon"
-  GIT_TAG 3f317421da77b9f6fd48aaf40608545db4fec3e0
-  OPTION_NAME Slicer_BUILD_vtkAddon
-  )
+if(BUILD_LOCAL)
+  Slicer_Remote_Add(vtkAddon
+    URL ${EP_LOCAL_PATH}vtkAddon.zip
+    URL_MD5 9fbc0cf07dcff96b7319271a96647759
+    OPTION_NAME Slicer_BUILD_vtkAddon
+    )
+else()
+  Slicer_Remote_Add(vtkAddon
+    GIT_REPOSITORY "${EP_GIT_PROTOCOL}://github.com/Slicer/vtkAddon"
+    GIT_TAG 3f317421da77b9f6fd48aaf40608545db4fec3e0
+    OPTION_NAME Slicer_BUILD_vtkAddon
+    )
+endif(BUILD_LOCAL)
 list_conditional_append(Slicer_BUILD_vtkAddon Slicer_REMOTE_DEPENDENCIES vtkAddon)
 
 set(vtkAddon_CMAKE_DIR ${vtkAddon_SOURCE_DIR}/CMake)
@@ -244,13 +251,23 @@ Slicer_Remote_Add(MultiVolumeImporter
   )
 list_conditional_append(Slicer_BUILD_MultiVolumeImporter Slicer_REMOTE_DEPENDENCIES MultiVolumeImporter)
 
-Slicer_Remote_Add(SimpleFilters
-  GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SimpleITK/SlicerSimpleFilters.git
-  GIT_TAG e82fc598bc010505e994b7ce22d953a9899a175c
-  OPTION_NAME Slicer_BUILD_SimpleFilters
-  OPTION_DEPENDS "Slicer_BUILD_QTSCRIPTEDMODULES;Slicer_USE_SimpleITK"
-  LABELS REMOTE_MODULE
-  )
+if(BUILD_LOCAL)
+  Slicer_Remote_Add(SimpleFilters
+    URL ${EP_LOCAL_PATH}SlicerSimpleFilters-master.zip
+    URL_MD5 82fd088816a565148dc8b9887fbe2c5d
+    OPTION_NAME Slicer_BUILD_SimpleFilters
+    OPTION_DEPENDS "Slicer_BUILD_QTSCRIPTEDMODULES;Slicer_USE_SimpleITK"
+    LABELS REMOTE_MODULE
+    )
+else()
+  Slicer_Remote_Add(SimpleFilters
+    GIT_REPOSITORY ${EP_GIT_PROTOCOL}://github.com/SimpleITK/SlicerSimpleFilters.git
+    GIT_TAG e82fc598bc010505e994b7ce22d953a9899a175c
+    OPTION_NAME Slicer_BUILD_SimpleFilters
+    OPTION_DEPENDS "Slicer_BUILD_QTSCRIPTEDMODULES;Slicer_USE_SimpleITK"
+    LABELS REMOTE_MODULE
+    )
+endif()
 list_conditional_append(Slicer_BUILD_SimpleFilters Slicer_REMOTE_DEPENDENCIES SimpleFilters)
 
 

@@ -46,13 +46,27 @@ if(APPLE)
   endif()
 endif()
 
+if(WIN32)
+  if(BUILD_LOCAL)
+    set(url "${EP_LOCAL_PATH}oneapi-tbb-2021.5.0-win.zip")
+    set(sha256 "SHA256=096c004c7079af89fe990bb259d58983b0ee272afa3a7ef0733875bfe09fcd8e")
+  else()
+    set(url https://github.com/oneapi-src/oneTBB/releases/download/v${tbb_ver}/${tbb_file})
+    set(sha256 SHA256=${tbb_sha256})
+  endif(BUILD_LOCAL) 
+else()
+  set(url https://github.com/oneapi-src/oneTBB/releases/download/v${tbb_ver}/${tbb_file})
+  set(sha256 SHA256=${tbb_sha256})
+endif()
+
+
 #------------------------------------------------------------------------------
 set(TBB_INSTALL_DIR "${CMAKE_BINARY_DIR}/${proj}-install")
 
 ExternalProject_Add(${proj}
   ${${proj}_EP_ARGS}
-  URL https://github.com/oneapi-src/oneTBB/releases/download/v${tbb_ver}/${tbb_file}
-  URL_HASH SHA256=${tbb_sha256}
+  URL ${url}
+  URL_HASH ${sha256}
   DOWNLOAD_DIR ${CMAKE_BINARY_DIR}
   SOURCE_DIR ${TBB_INSTALL_DIR}
   BUILD_IN_SOURCE 1
