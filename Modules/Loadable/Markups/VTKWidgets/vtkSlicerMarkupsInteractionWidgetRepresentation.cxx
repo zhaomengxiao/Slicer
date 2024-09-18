@@ -827,6 +827,24 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::GetInteractionHandleAxisLo
         break;
     }
   }
+  else
+  {
+    switch (index)
+    {
+    case 0:
+      axis_Local[0] = 1.0;
+      break;
+    case 1:
+      axis_Local[1] = 1.0;
+      break;
+    case 2:
+      axis_Local[2] = 1.0;
+      break;
+    default:
+      // Other handles scaling are not restricted to a single axis
+      break;
+    }
+  }
 }
 
 //----------------------------------------------------------------------
@@ -930,19 +948,23 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::GetInteractionHandlePositi
     vtkErrorMacro("GetInteractionHandlePositionWorld: Invalid position argument");
   }
 
-  if (type != InteractionScaleHandle)
+  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
+  if (vtkMRMLMarkupsROINode::SafeDownCast(markupsNode) || vtkMRMLMarkupsPlaneNode::SafeDownCast(markupsNode))
+  {
+    vtkPolyData* handlePolyData = this->GetHandlePolydata(type);
+    if (!handlePolyData)
+    {
+      return;
+    }
+    handlePolyData->GetPoint(index, positionWorld);
+    this->Pipeline->HandleToWorldTransform->TransformPoint(positionWorld, positionWorld);
+  }
+
+  else
   {
     Superclass::GetInteractionHandlePositionWorld(type, index, positionWorld);
     return;
   }
-
-  vtkPolyData* handlePolyData = this->GetHandlePolydata(type);
-  if (!handlePolyData)
-  {
-    return;
-  }
-  handlePolyData->GetPoint(index, positionWorld);
-  this->Pipeline->HandleToWorldTransform->TransformPoint(positionWorld, positionWorld);
 }
 
 //-----------------------------------------------------------------------------
