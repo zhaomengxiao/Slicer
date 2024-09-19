@@ -1312,4 +1312,6 @@ endif()
 # The commands in this directory are intended to be executed as
 # the end of the whole configuration process, as a "last step".
 # This directory is typically the last add_subdirectory in the main CMakeLists.txt.
+set(CPACK_INSTALLED_DIRECTORIES "${CMAKE_BINARY_DIR}/config/;/config" )
+message(STATUS "CPack installed directories: ${CPACK_INSTALLED_DIRECTORIES}")
 add_subdirectory(CMake/LastConfigureStep)
