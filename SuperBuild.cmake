@@ -352,13 +352,23 @@ Slicer_Remote_Add(LandmarkRegistration
  )
 list_conditional_append(Slicer_BUILD_LandmarkRegistration Slicer_REMOTE_DEPENDENCIES LandmarkRegistration)
 
-Slicer_Remote_Add(SurfaceToolbox
-  GIT_REPOSITORY "${EP_GIT_PROTOCOL}://github.com/Slicer/SlicerSurfaceToolbox"
-  GIT_TAG 09d5bf61655c1f276541797f6d2593a61eabf98d
-  OPTION_NAME Slicer_BUILD_SurfaceToolbox
-  OPTION_DEPENDS "Slicer_USE_PYTHONQT"
-  LABELS REMOTE_MODULE
-  )
+if(BUILD_LOCAL)
+  Slicer_Remote_Add(SurfaceToolbox
+    URL ${EP_LOCAL_PATH}SlicerSurfaceToolbox-master.zip
+    URL_MD5 238afe5963fcc1b994345364096eb0f3
+    OPTION_NAME Slicer_BUILD_SurfaceToolbox
+    OPTION_DEPENDS "Slicer_USE_PYTHONQT"
+    LABELS REMOTE_MODULE
+    )
+else()
+  Slicer_Remote_Add(SurfaceToolbox
+    GIT_REPOSITORY "${EP_GIT_PROTOCOL}://github.com/Slicer/SlicerSurfaceToolbox"
+    GIT_TAG 09d5bf61655c1f276541797f6d2593a61eabf98d
+    OPTION_NAME Slicer_BUILD_SurfaceToolbox
+    OPTION_DEPENDS "Slicer_USE_PYTHONQT"
+    LABELS REMOTE_MODULE
+    )
+endif()
 list_conditional_append(Slicer_BUILD_SurfaceToolbox Slicer_REMOTE_DEPENDENCIES SurfaceToolbox)
 
 #------------------------------------------------------------------------------
