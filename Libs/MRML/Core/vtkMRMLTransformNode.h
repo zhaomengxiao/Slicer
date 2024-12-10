@@ -277,9 +277,14 @@ public:
   /// Indicates that the transform inside the object is modified.
   /// Typical usage would be to disable transform modified events, call a series of operations that change transforms
   /// and then re-enable transform modified events to invoke any pending notifications.
+  enum
+  {
+    InternalTransformModifiedEvent = 20000
+  };
   virtual void TransformModified()
   {
     this->InvokeCustomModifiedEvent(vtkMRMLTransformableNode::TransformModifiedEvent);
+    this->InvokeCustomModifiedEvent(InternalTransformModifiedEvent);
   }
 
   bool GetModifiedSinceRead() override;
