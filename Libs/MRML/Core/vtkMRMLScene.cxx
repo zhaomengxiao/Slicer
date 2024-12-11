@@ -23,6 +23,7 @@ Version:   $Revision: 1.18 $
 #include "vtkMRMLBSplineTransformNode.h"
 #include "vtkMRMLCameraNode.h"
 #include "vtkMRMLClipModelsNode.h"
+#include "vtkMRMLClipNode.h"
 #include "vtkMRMLColorTableStorageNode.h"
 #include "vtkMRMLCrosshairNode.h"
 #include "vtkMRMLDiffusionWeightedVolumeDisplayNode.h"
@@ -171,6 +172,7 @@ vtkMRMLScene::vtkMRMLScene()
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLModelStorageNode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLModelDisplayNode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLClipModelsNode >::New() );
+  this->RegisterNodeClass( vtkSmartPointer< vtkMRMLClipNode >::New());
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLFolderDisplayNode >::New());
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLROINode >::New() );
   this->RegisterNodeClass( vtkSmartPointer< vtkMRMLROIListNode >::New() );
@@ -1334,19 +1336,16 @@ vtkMRMLNode* vtkMRMLScene::AddNode(vtkMRMLNode *n)
   {
     return nullptr;
   }
-#ifndef NDEBUG
-  // Since calling IsNodePresent is costly, a "developer hint" is printed only
-  // if build as debug. We can't exit here as the release would then be
-  // different from debug.
-  // The caller should make sure the node has not been added yet.
+
   if (this->IsNodePresent(n) != 0)
   {
     vtkErrorMacro("AddNode: Node " << n->GetClassName() << "/"
       << (n->GetName() ? n->GetName() : "(undefined)") << "/"
       << (n->GetID() ? n->GetID() : "(undefined)")
       << "[" << n << "]" << " already added");
+    return n;
   }
-#endif
+
   // We need to know if the node will be actually added to the scene before
   // it is effectively added to know if NodeAboutToBeAddedEvent needs to be
   // fired.
@@ -3708,9 +3707,9 @@ bool vtkMRMLScene::GetModifiedSinceRead(vtkCollection* modifiedNodes/*=nullptr*/
   for (this->Nodes->InitTraversal(it);
     (node = (vtkMRMLNode*)this->Nodes->GetNextItemAsObject(it));)
   {
-    if (node->IsA("vtkMRMLAbstractViewNode"))
+    if (node->IsA("vtkMRMLAbstractViewNode") || node->IsA("vtkMRMLCameraNode"))
     {
-      // We do not consider view node changes as scene change,
+      // We do not consider view and camera node changes as scene change,
       // because view nodes may change because application window is resized, etc.
       continue;
     }
@@ -3744,6 +3743,12 @@ bool vtkMRMLScene
     if (!storableNode->GetHideFromEditors() &&
          storableNode->GetModifiedSinceRead())
     {
+      if (!storableNode->GetStorageNode() && storableNode->GetDefaultStorageNodeClassName().empty())
+      {
+        // The storable node does not have a storage node, but it does not need one (because content is stored in the scene
+        // (for example vtkMRMLTextNode containing short text).
+        continue;
+      }
       found = true;
       if (modifiedStorableNodes)
       {
@@ -3858,6 +3863,20 @@ void vtkMRMLScene::TrimUndoStack()
 }
 
 //----------------------------------------------------------------------------
+std::string vtkMRMLScene::GetTemporaryBundleDirectory()
+{
+  std::stringstream ss;
+  ss << vtksys::SystemTools::GetCurrentDateTime("_tmp%Y%m%d");
+  const char validCharacters[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+  int numberOfCharacters = sizeof(validCharacters) - 1;
+  for (int i = 0; i < 5; i++)
+  {
+    ss << validCharacters[rand() % numberOfCharacters];
+  }
+  return ss.str();
+}
+
+//----------------------------------------------------------------------------
 bool vtkMRMLScene::WriteToMRB(const char* filename, vtkImageData* thumbnail/*=nullptr*/, vtkMRMLMessageCollection* userMessages/*=nullptr*/)
 {
   //
@@ -3887,7 +3906,7 @@ bool vtkMRMLScene::WriteToMRB(const char* filename, vtkImageData* thumbnail/*=nu
     tempBaseDir = mrbDir;
   }
   std::stringstream tempDirStr;
-  tempDirStr << tempBaseDir << "/" << vtksys::SystemTools::GetCurrentDateTime("__BundleSaveTemp-%F_%H%M%S_") << (this->RandomGenerator() % 1000);
+  tempDirStr << tempBaseDir << "/" << this->GetTemporaryBundleDirectory();
   std::string tempDir = tempDirStr.str();
   vtkDebugMacro("Packing bundle to " << tempDir);
 
@@ -3967,7 +3986,7 @@ bool vtkMRMLScene::ReadFromMRB(const char* fullName, bool clear/*=false*/, vtkMR
     return false;
   }
   std::stringstream unpackDirStr;
-  unpackDirStr << tempBaseDir << "/" << vtksys::SystemTools::GetCurrentDateTime("__BundleLoadTemp-%F_%H%M%S_") << (this->RandomGenerator() % 1000);
+  unpackDirStr << tempBaseDir << "/" << this->GetTemporaryBundleDirectory();
   std::string unpackDir = unpackDirStr.str();
   vtkDebugMacro("Unpacking bundle to " << unpackDir);
 
@@ -4546,6 +4565,7 @@ bool vtkMRMLScene::SaveStorableNodeToSlicerDataBundleDirectory(vtkMRMLStorableNo
     // Default storage node usually has empty file name (if Save dialog is not opened yet)
     // file name is encoded to handle : or / characters in the node names
     std::string fileBaseName = this->PercentEncode(std::string(storableNode->GetName()));
+    fileBaseName = storageNode->ClampFileName(fileBaseName);
     std::string extension = storageNode->GetDefaultWriteFileExtension();
     std::string storageFileName = fileBaseName + std::string(".") + extension;
     vtkDebugMacro("new file name = " << storageFileName.c_str());

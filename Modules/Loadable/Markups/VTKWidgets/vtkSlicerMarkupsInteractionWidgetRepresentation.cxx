@@ -47,25 +47,25 @@ vtkSlicerMarkupsInteractionWidgetRepresentation::vtkSlicerMarkupsInteractionWidg
 vtkSlicerMarkupsInteractionWidgetRepresentation::~vtkSlicerMarkupsInteractionWidgetRepresentation() = default;
 
 //-----------------------------------------------------------------------------
-void vtkSlicerMarkupsInteractionWidgetRepresentation::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerMarkupsInteractionWidgetRepresentation::PrintSelf(ostream &os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
 }
 
 //----------------------------------------------------------------------
-vtkMRMLMarkupsDisplayNode* vtkSlicerMarkupsInteractionWidgetRepresentation::GetDisplayNode()
+vtkMRMLMarkupsDisplayNode *vtkSlicerMarkupsInteractionWidgetRepresentation::GetDisplayNode()
 {
   return this->DisplayNode;
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerMarkupsInteractionWidgetRepresentation::SetDisplayNode(vtkMRMLMarkupsDisplayNode* displayNode)
+void vtkSlicerMarkupsInteractionWidgetRepresentation::SetDisplayNode(vtkMRMLMarkupsDisplayNode *displayNode)
 {
   this->DisplayNode = displayNode;
 }
 
 //----------------------------------------------------------------------
-vtkMRMLMarkupsNode* vtkSlicerMarkupsInteractionWidgetRepresentation::GetMarkupsNode()
+vtkMRMLMarkupsNode *vtkSlicerMarkupsInteractionWidgetRepresentation::GetMarkupsNode()
 {
   if (!this->GetDisplayNode())
   {
@@ -141,13 +141,8 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::SetActiveComponentIndex(in
 //----------------------------------------------------------------------
 bool vtkSlicerMarkupsInteractionWidgetRepresentation::IsDisplayable()
 {
-  vtkMRMLMarkupsDisplayNode* displayNode = this->GetDisplayNode();
-  if (!displayNode
-    || !this->GetMarkupsNode()
-    || !this->GetViewNode()
-    || !displayNode->GetVisibility()
-    || !displayNode->GetHandlesInteractive()
-    || !displayNode->IsDisplayableInView(this->GetViewNode()->GetID()))
+  vtkMRMLMarkupsDisplayNode *displayNode = this->GetDisplayNode();
+  if (!displayNode || !this->GetMarkupsNode() || !this->GetViewNode() || !displayNode->GetVisibility() || !displayNode->GetHandlesInteractive() || !displayNode->IsDisplayableInView(this->GetViewNode()->GetID()))
   {
     return false;
   }
@@ -170,7 +165,7 @@ bool vtkSlicerMarkupsInteractionWidgetRepresentation::IsDisplayable()
   // If parent folder visibility is set to false then the markups is not visible
   if (displayNode->GetFolderDisplayOverrideAllowed())
   {
-    vtkMRMLDisplayableNode* displayableNode = displayNode->GetDisplayableNode();
+    vtkMRMLDisplayableNode *displayableNode = displayNode->GetDisplayableNode();
     // Visibility is applied regardless the fact whether there is override or not.
     // Visibility of items defined by hierarchy is off if any of the ancestors is explicitly hidden.
     // However, this does not apply on display nodes that do not allow overrides (FolderDisplayOverrideAllowed)
@@ -180,7 +175,7 @@ bool vtkSlicerMarkupsInteractionWidgetRepresentation::IsDisplayable()
     }
   }
 
-  vtkMRMLMarkupsPlaneNode* planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsPlaneNode *planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
   if (planeNode && !planeNode->GetIsPlaneValid())
   {
     return false;
@@ -193,7 +188,7 @@ bool vtkSlicerMarkupsInteractionWidgetRepresentation::IsDisplayable()
 void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateInteractionPipeline()
 {
   bool currentVisibility = this->GetVisibility();
-  vtkMRMLAbstractViewNode* viewNode = vtkMRMLAbstractViewNode::SafeDownCast(this->ViewNode);
+  vtkMRMLAbstractViewNode *viewNode = vtkMRMLAbstractViewNode::SafeDownCast(this->ViewNode);
   if (!viewNode || !this->GetMarkupsNode() || !this->IsDisplayable())
   {
     this->SetVisibility(false);
@@ -209,7 +204,7 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateInteractionPipeline(
   // Final visibility handled by superclass in vtkMRMLInteractionWidgetRepresentation
   Superclass::UpdateInteractionPipeline();
 
-  vtkMRMLMarkupsDisplayNode* displayNode = this->GetDisplayNode();
+  vtkMRMLMarkupsDisplayNode *displayNode = this->GetDisplayNode();
   if (!displayNode)
   {
     return;
@@ -218,12 +213,12 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateInteractionPipeline(
   for (int type = InteractionNone + 1; type < Interaction_Last; ++type)
   {
     int markupsComponentType = this->InteractionComponentToMarkupsComponent(type);
-    vtkPolyData* handlePolyData = this->GetHandlePolydata(type);
+    vtkPolyData *handlePolyData = this->GetHandlePolydata(type);
     if (!handlePolyData)
     {
       continue;
     }
-    vtkIdTypeArray* visibilityArray = vtkIdTypeArray::SafeDownCast(handlePolyData->GetPointData()->GetArray("visibility"));
+    vtkIdTypeArray *visibilityArray = vtkIdTypeArray::SafeDownCast(handlePolyData->GetPointData()->GetArray("visibility"));
     if (!visibilityArray)
     {
       continue;
@@ -250,7 +245,7 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateInteractionPipeline(
 //----------------------------------------------------------------------
 void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdatePlaneScaleHandles()
 {
-  vtkMRMLMarkupsPlaneNode* planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsPlaneNode *planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
   if (!planeNode)
   {
     return;
@@ -259,31 +254,31 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdatePlaneScaleHandles()
   vtkNew<vtkPoints> planeCornerPoints_World;
   planeNode->GetPlaneCornerPointsWorld(planeCornerPoints_World);
 
-  double lpCorner_World[3] = { 0.0, 0.0, 0.0 };
+  double lpCorner_World[3] = {0.0, 0.0, 0.0};
   planeCornerPoints_World->GetPoint(0, lpCorner_World);
 
-  double laCorner_World[3] = { 0.0, 0.0, 0.0 };
+  double laCorner_World[3] = {0.0, 0.0, 0.0};
   planeCornerPoints_World->GetPoint(1, laCorner_World);
 
-  double raCorner_World[3] = { 0.0, 0.0, 0.0 };
+  double raCorner_World[3] = {0.0, 0.0, 0.0};
   planeCornerPoints_World->GetPoint(2, raCorner_World);
 
-  double rpCorner_World[3] = { 0.0, 0.0, 0.0 };
+  double rpCorner_World[3] = {0.0, 0.0, 0.0};
   planeCornerPoints_World->GetPoint(3, rpCorner_World);
 
-  double lEdge_World[3] = { 0.0, 0.0, 0.0 };
+  double lEdge_World[3] = {0.0, 0.0, 0.0};
   vtkMath::Add(laCorner_World, lpCorner_World, lEdge_World);
   vtkMath::MultiplyScalar(lEdge_World, 0.5);
 
-  double rEdge_World[3] = { 0.0, 0.0, 0.0 };
+  double rEdge_World[3] = {0.0, 0.0, 0.0};
   vtkMath::Add(raCorner_World, rpCorner_World, rEdge_World);
   vtkMath::MultiplyScalar(rEdge_World, 0.5);
 
-  double aEdge_World[3] = { 0.0, 0.0, 0.0 };
+  double aEdge_World[3] = {0.0, 0.0, 0.0};
   vtkMath::Add(laCorner_World, raCorner_World, aEdge_World);
   vtkMath::MultiplyScalar(aEdge_World, 0.5);
 
-  double pEdge_World[3] = { 0.0, 0.0, 0.0 };
+  double pEdge_World[3] = {0.0, 0.0, 0.0};
   vtkMath::Add(lpCorner_World, rpCorner_World, pEdge_World);
   vtkMath::MultiplyScalar(pEdge_World, 0.5);
 
@@ -306,7 +301,7 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdatePlaneScaleHandles()
   // Scale handles are expected in the handle coordinate system
   for (int i = 0; i < scaleHandlePoints->GetNumberOfPoints(); ++i)
   {
-    double scaleHandlePoint[3] = { 0.0, 0.0, 0.0 };
+    double scaleHandlePoint[3] = {0.0, 0.0, 0.0};
     worldToHandleTransform->TransformPoint(scaleHandlePoints->GetPoint(i), scaleHandlePoint);
     scaleHandlePoints->SetPoint(i, scaleHandlePoint);
   }
@@ -317,7 +312,7 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdatePlaneScaleHandles()
 //----------------------------------------------------------------------
 void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles()
 {
-  vtkMRMLMarkupsROINode* roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsROINode *roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
   if (!roiNode)
   {
     return;
@@ -336,14 +331,14 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles()
 //----------------------------------------------------------------------
 void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles3D()
 {
-  vtkMRMLMarkupsROINode* roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsROINode *roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
   if (!roiNode)
   {
     return;
   }
 
   // 3D points
-  double sideLengths[3] = { 0.0,  0.0, 0.0 };
+  double sideLengths[3] = {0.0, 0.0, 0.0};
   roiNode->GetSizeWorld(sideLengths);
   vtkMath::MultiplyScalar(sideLengths, 0.5);
 
@@ -369,43 +364,43 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles3D()
 //----------------------------------------------------------------------
 void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
 {
-  vtkMRMLMarkupsROINode* roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsROINode *roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
   if (!roiNode)
   {
     return;
   }
 
-  vtkMRMLMarkupsDisplayNode* displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(roiNode->GetDisplayNode());
+  vtkMRMLMarkupsDisplayNode *displayNode = vtkMRMLMarkupsDisplayNode::SafeDownCast(roiNode->GetDisplayNode());
   if (!displayNode)
   {
     return;
   }
 
-  double viewPlaneOrigin_World[3] = { 0.0, 0.0, 0.0 };
+  double viewPlaneOrigin_World[3] = {0.0, 0.0, 0.0};
   this->SlicePlane->GetOrigin(viewPlaneOrigin_World);
 
-  double viewPlaneNormal_World[3] = { 0.0, 0.0, 1.0 };
+  double viewPlaneNormal_World[3] = {0.0, 0.0, 1.0};
   this->SlicePlane->GetNormal(viewPlaneNormal_World);
 
-  vtkMatrix4x4* objectToWorldMatrix = roiNode->GetObjectToWorldMatrix();
+  vtkMatrix4x4 *objectToWorldMatrix = roiNode->GetObjectToWorldMatrix();
   vtkNew<vtkTransform> worldToObjectTransform;
   worldToObjectTransform->Concatenate(objectToWorldMatrix);
   worldToObjectTransform->Inverse();
 
-  double viewPlaneOrigin_Object[3] = { 0.0, 0.0, 0.0 };
-  double viewPlaneNormal_Object[3] = { 0.0, 0.0, 0.0 };
+  double viewPlaneOrigin_Object[3] = {0.0, 0.0, 0.0};
+  double viewPlaneNormal_Object[3] = {0.0, 0.0, 0.0};
   worldToObjectTransform->TransformPoint(viewPlaneOrigin_World, viewPlaneOrigin_Object);
   worldToObjectTransform->TransformVector(viewPlaneNormal_World, viewPlaneNormal_Object);
 
-  double sideLengths[3] = { 0.0, 0.0, 0.0 };
+  double sideLengths[3] = {0.0, 0.0, 0.0};
   roiNode->GetSizeWorld(sideLengths);
-  double sideRadius[3] = { sideLengths[0], sideLengths[1], sideLengths[2] };
+  double sideRadius[3] = {sideLengths[0], sideLengths[1], sideLengths[2]};
   vtkMath::MultiplyScalar(sideRadius, 0.5);
 
   vtkNew<vtkPoints> scaleHandlePoints_Object;
   scaleHandlePoints_Object->SetNumberOfPoints(26);
 
-  vtkIdTypeArray* visibilityArray = vtkIdTypeArray::SafeDownCast(this->Pipeline->ScaleHandlePoints->GetPointData()->GetArray("visibility"));
+  vtkIdTypeArray *visibilityArray = vtkIdTypeArray::SafeDownCast(this->Pipeline->ScaleHandlePoints->GetPointData()->GetArray("visibility"));
   visibilityArray->SetNumberOfValues(scaleHandlePoints_Object->GetNumberOfPoints());
   visibilityArray->Fill(displayNode ? displayNode->GetScaleHandleVisibility() : 1.0);
 
@@ -421,13 +416,13 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
   plane->SetOrigin(viewPlaneOrigin_Object);
 
   // Left face handle
-  double lFacePoint_Object[3] =  { -sideRadius[0], -sideRadius[1], -sideRadius[2] };
-  double lFacePointX_Object[3] = { -sideRadius[0],  sideRadius[1], -sideRadius[2] };
-  double lFacePointY_Object[3] = { -sideRadius[0], -sideRadius[1],  sideRadius[2] };
-  double lFaceIntersection0_Object[3] = { 0.0, 0.0, 0.0 };
-  double lFaceIntersection1_Object[3] = { 0.0, 0.0, 0.0 };
+  double lFacePoint_Object[3] = {-sideRadius[0], -sideRadius[1], -sideRadius[2]};
+  double lFacePointX_Object[3] = {-sideRadius[0], sideRadius[1], -sideRadius[2]};
+  double lFacePointY_Object[3] = {-sideRadius[0], -sideRadius[1], sideRadius[2]};
+  double lFaceIntersection0_Object[3] = {0.0, 0.0, 0.0};
+  double lFaceIntersection1_Object[3] = {0.0, 0.0, 0.0};
   if (vtkPlane::IntersectWithFinitePlane(viewPlaneNormal_Object, viewPlaneOrigin_Object,
-    lFacePoint_Object, lFacePointX_Object, lFacePointY_Object, lFaceIntersection0_Object, lFaceIntersection1_Object))
+                                         lFacePoint_Object, lFacePointX_Object, lFacePointY_Object, lFaceIntersection0_Object, lFaceIntersection1_Object))
   {
     vtkMath::Add(lFaceIntersection0_Object, lFaceIntersection1_Object, lFacePoint_Object);
     vtkMath::MultiplyScalar(lFacePoint_Object, 0.5);
@@ -440,13 +435,13 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
   scaleHandlePoints_Object->SetPoint(vtkMRMLMarkupsROIDisplayNode::HandleLFace, lFacePoint_Object);
 
   // Right face handle
-  double rFacePoint_Object[3] =  { sideRadius[0], -sideRadius[1], -sideRadius[2] };
-  double rFacePointX_Object[3] = { sideRadius[0],  sideRadius[1], -sideRadius[2] };
-  double rFacePointY_Object[3] = { sideRadius[0], -sideRadius[1],  sideRadius[2] };
-  double rFaceIntersection0_Object[3] = { 0.0, 0.0, 0.0 };
-  double rFaceIntersection1_Object[3] = { 0.0, 0.0, 0.0 };
+  double rFacePoint_Object[3] = {sideRadius[0], -sideRadius[1], -sideRadius[2]};
+  double rFacePointX_Object[3] = {sideRadius[0], sideRadius[1], -sideRadius[2]};
+  double rFacePointY_Object[3] = {sideRadius[0], -sideRadius[1], sideRadius[2]};
+  double rFaceIntersection0_Object[3] = {0.0, 0.0, 0.0};
+  double rFaceIntersection1_Object[3] = {0.0, 0.0, 0.0};
   if (vtkPlane::IntersectWithFinitePlane(viewPlaneNormal_Object, viewPlaneOrigin_Object,
-    rFacePoint_Object, rFacePointX_Object, rFacePointY_Object, rFaceIntersection0_Object, rFaceIntersection1_Object))
+                                         rFacePoint_Object, rFacePointX_Object, rFacePointY_Object, rFaceIntersection0_Object, rFaceIntersection1_Object))
   {
     vtkMath::Add(rFaceIntersection0_Object, rFaceIntersection1_Object, rFacePoint_Object);
     vtkMath::MultiplyScalar(rFacePoint_Object, 0.5);
@@ -459,13 +454,13 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
   scaleHandlePoints_Object->SetPoint(vtkMRMLMarkupsROIDisplayNode::HandleRFace, rFacePoint_Object);
 
   // Posterior face handle
-  double pFacePoint_Object[3] =  { -sideRadius[0], -sideRadius[1], -sideRadius[2] };
-  double pFacePointX_Object[3] = {  sideRadius[0], -sideRadius[1], -sideRadius[2] };
-  double pFacePointY_Object[3] = { -sideRadius[0], -sideRadius[1],  sideRadius[2] };
-  double pFaceIntersection0_Object[3] = { 0.0, 0.0, 0.0 };
-  double pFaceIntersection1_Object[3] = { 0.0, 0.0, 0.0 };
+  double pFacePoint_Object[3] = {-sideRadius[0], -sideRadius[1], -sideRadius[2]};
+  double pFacePointX_Object[3] = {sideRadius[0], -sideRadius[1], -sideRadius[2]};
+  double pFacePointY_Object[3] = {-sideRadius[0], -sideRadius[1], sideRadius[2]};
+  double pFaceIntersection0_Object[3] = {0.0, 0.0, 0.0};
+  double pFaceIntersection1_Object[3] = {0.0, 0.0, 0.0};
   if (vtkPlane::IntersectWithFinitePlane(viewPlaneNormal_Object, viewPlaneOrigin_Object,
-    pFacePoint_Object, pFacePointX_Object, pFacePointY_Object, pFaceIntersection0_Object, pFaceIntersection1_Object))
+                                         pFacePoint_Object, pFacePointX_Object, pFacePointY_Object, pFaceIntersection0_Object, pFaceIntersection1_Object))
   {
     vtkMath::Add(pFaceIntersection0_Object, pFaceIntersection1_Object, pFacePoint_Object);
     vtkMath::MultiplyScalar(pFacePoint_Object, 0.5);
@@ -478,13 +473,13 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
   scaleHandlePoints_Object->SetPoint(vtkMRMLMarkupsROIDisplayNode::HandlePFace, pFacePoint_Object);
 
   // Anterior face handle
-  double aFacePoint_Object[3] =  { -sideRadius[0],  sideRadius[1], -sideRadius[2] };
-  double aFacePointX_Object[3] = {  sideRadius[0],  sideRadius[1], -sideRadius[2] };
-  double aFacePointY_Object[3] = { -sideRadius[0],  sideRadius[1],  sideRadius[2] };
-  double aFaceIntersection0_Object[3] = { 0.0, 0.0, 0.0 };
-  double aFaceIntersection1_Object[3] = { 0.0, 0.0, 0.0 };
+  double aFacePoint_Object[3] = {-sideRadius[0], sideRadius[1], -sideRadius[2]};
+  double aFacePointX_Object[3] = {sideRadius[0], sideRadius[1], -sideRadius[2]};
+  double aFacePointY_Object[3] = {-sideRadius[0], sideRadius[1], sideRadius[2]};
+  double aFaceIntersection0_Object[3] = {0.0, 0.0, 0.0};
+  double aFaceIntersection1_Object[3] = {0.0, 0.0, 0.0};
   if (vtkPlane::IntersectWithFinitePlane(viewPlaneNormal_Object, viewPlaneOrigin_Object,
-    aFacePoint_Object, aFacePointX_Object, aFacePointY_Object, aFaceIntersection0_Object, aFaceIntersection1_Object))
+                                         aFacePoint_Object, aFacePointX_Object, aFacePointY_Object, aFaceIntersection0_Object, aFaceIntersection1_Object))
   {
     vtkMath::Add(aFaceIntersection0_Object, aFaceIntersection1_Object, aFacePoint_Object);
     vtkMath::MultiplyScalar(aFacePoint_Object, 0.5);
@@ -497,13 +492,13 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
   scaleHandlePoints_Object->SetPoint(vtkMRMLMarkupsROIDisplayNode::HandleAFace, aFacePoint_Object);
 
   // Inferior face handle
-  double iFacePoint_Object[3] =  { -sideRadius[0], -sideRadius[1], -sideRadius[2] };
-  double iFacePointX_Object[3] = {  sideRadius[0], -sideRadius[1], -sideRadius[2] };
-  double iFacePointY_Object[3] = { -sideRadius[0],  sideRadius[1], -sideRadius[2] };
-  double iFaceIntersection0_Object[3] = { 0.0, 0.0, 0.0 };
-  double iFaceIntersection1_Object[3] = { 0.0, 0.0, 0.0 };
+  double iFacePoint_Object[3] = {-sideRadius[0], -sideRadius[1], -sideRadius[2]};
+  double iFacePointX_Object[3] = {sideRadius[0], -sideRadius[1], -sideRadius[2]};
+  double iFacePointY_Object[3] = {-sideRadius[0], sideRadius[1], -sideRadius[2]};
+  double iFaceIntersection0_Object[3] = {0.0, 0.0, 0.0};
+  double iFaceIntersection1_Object[3] = {0.0, 0.0, 0.0};
   if (vtkPlane::IntersectWithFinitePlane(viewPlaneNormal_Object, viewPlaneOrigin_Object,
-    iFacePoint_Object, iFacePointX_Object, iFacePointY_Object, iFaceIntersection0_Object, iFaceIntersection1_Object))
+                                         iFacePoint_Object, iFacePointX_Object, iFacePointY_Object, iFaceIntersection0_Object, iFaceIntersection1_Object))
   {
     vtkMath::Add(iFaceIntersection0_Object, iFaceIntersection1_Object, iFacePoint_Object);
     vtkMath::MultiplyScalar(iFacePoint_Object, 0.5);
@@ -516,13 +511,13 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
   scaleHandlePoints_Object->SetPoint(vtkMRMLMarkupsROIDisplayNode::HandleIFace, iFacePoint_Object);
 
   // Superior face handle
-  double sFacePoint_Object[3] =  { -sideRadius[0], -sideRadius[1], sideRadius[2] };
-  double sFacePointX_Object[3] = {  sideRadius[0], -sideRadius[1], sideRadius[2] };
-  double sFacePointY_Object[3] = { -sideRadius[0],  sideRadius[1], sideRadius[2] };
-  double sFaceIntersection0_Object[3] = { 0.0, 0.0, 0.0 };
-  double sFaceIntersection1_Object[3] = { 0.0, 0.0, 0.0 };
+  double sFacePoint_Object[3] = {-sideRadius[0], -sideRadius[1], sideRadius[2]};
+  double sFacePointX_Object[3] = {sideRadius[0], -sideRadius[1], sideRadius[2]};
+  double sFacePointY_Object[3] = {-sideRadius[0], sideRadius[1], sideRadius[2]};
+  double sFaceIntersection0_Object[3] = {0.0, 0.0, 0.0};
+  double sFaceIntersection1_Object[3] = {0.0, 0.0, 0.0};
   if (vtkPlane::IntersectWithFinitePlane(viewPlaneNormal_Object, viewPlaneOrigin_Object,
-    sFacePoint_Object, sFacePointX_Object, sFacePointY_Object, sFaceIntersection0_Object, sFaceIntersection1_Object))
+                                         sFacePoint_Object, sFacePointX_Object, sFacePointY_Object, sFaceIntersection0_Object, sFaceIntersection1_Object))
   {
     vtkMath::Add(sFaceIntersection0_Object, sFaceIntersection1_Object, sFacePoint_Object);
     vtkMath::MultiplyScalar(sFacePoint_Object, 0.5);
@@ -536,47 +531,47 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
 
   bool intersection = false;
 
-  double sVector_Object[3] = { 0.0, 0.0, sideLengths[2] };
-  double lpEdgePoint_Object[3] = { -sideRadius[0], -sideRadius[1], -sideRadius[2] };
+  double sVector_Object[3] = {0.0, 0.0, sideLengths[2]};
+  double lpEdgePoint_Object[3] = {-sideRadius[0], -sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleLPEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, lpEdgePoint_Object, sVector_Object);
-  double rpEdgePoint_Object[3] = {  sideRadius[0], -sideRadius[1], -sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, lpEdgePoint_Object, sVector_Object);
+  double rpEdgePoint_Object[3] = {sideRadius[0], -sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleRPEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, rpEdgePoint_Object, sVector_Object);
-  double laEdgePoint_Object[3] = { -sideRadius[0],  sideRadius[1], -sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, rpEdgePoint_Object, sVector_Object);
+  double laEdgePoint_Object[3] = {-sideRadius[0], sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleLAEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, laEdgePoint_Object, sVector_Object);
-  double raEdgePoint_Object[3] = {  sideRadius[0],  sideRadius[1], -sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, laEdgePoint_Object, sVector_Object);
+  double raEdgePoint_Object[3] = {sideRadius[0], sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleRAEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, raEdgePoint_Object, sVector_Object);
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, raEdgePoint_Object, sVector_Object);
 
-  double aVector_Object[3] = { 0.0, sideLengths[1], 0.0 };
-  double liEdgePoint_Object[3] = { -sideRadius[0], -sideRadius[1], -sideRadius[2] };
+  double aVector_Object[3] = {0.0, sideLengths[1], 0.0};
+  double liEdgePoint_Object[3] = {-sideRadius[0], -sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleLIEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, liEdgePoint_Object, aVector_Object);
-  double riEdgePoint_Object[3] = {  sideRadius[0], -sideRadius[1], -sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, liEdgePoint_Object, aVector_Object);
+  double riEdgePoint_Object[3] = {sideRadius[0], -sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleRIEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, riEdgePoint_Object, aVector_Object);
-  double lsEdgePoint_Object[3] = { -sideRadius[0], -sideRadius[1],  sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, riEdgePoint_Object, aVector_Object);
+  double lsEdgePoint_Object[3] = {-sideRadius[0], -sideRadius[1], sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleLSEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, lsEdgePoint_Object, aVector_Object);
-  double rsEdgePoint_Object[3] = {  sideRadius[0], -sideRadius[1],  sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, lsEdgePoint_Object, aVector_Object);
+  double rsEdgePoint_Object[3] = {sideRadius[0], -sideRadius[1], sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleRSEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, rsEdgePoint_Object, aVector_Object);
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, rsEdgePoint_Object, aVector_Object);
 
-  double rVector_Object[3] = { sideLengths[0], 0.0, 0.0 };
-  double piEdgePoint_Object[3] = { -sideRadius[0], -sideRadius[1], -sideRadius[2] };
+  double rVector_Object[3] = {sideLengths[0], 0.0, 0.0};
+  double piEdgePoint_Object[3] = {-sideRadius[0], -sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandlePIEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, piEdgePoint_Object, rVector_Object);
-  double aiEdgePoint_Object[3] = { -sideRadius[0],  sideRadius[1], -sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, piEdgePoint_Object, rVector_Object);
+  double aiEdgePoint_Object[3] = {-sideRadius[0], sideRadius[1], -sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleAIEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, aiEdgePoint_Object, rVector_Object);
-  double psEdgePoint_Object[3] = { -sideRadius[0], -sideRadius[1],  sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, aiEdgePoint_Object, rVector_Object);
+  double psEdgePoint_Object[3] = {-sideRadius[0], -sideRadius[1], sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandlePSEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, psEdgePoint_Object, rVector_Object);
-  double asEdgePoint_Object[3] = { -sideRadius[0],  sideRadius[1],  sideRadius[2] };
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, psEdgePoint_Object, rVector_Object);
+  double asEdgePoint_Object[3] = {-sideRadius[0], sideRadius[1], sideRadius[2]};
   intersection |= this->AddScaleEdgeIntersection(vtkMRMLMarkupsROIDisplayNode::HandleASEdge,
-    visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, asEdgePoint_Object, rVector_Object);
+                                                 visibilityArray, scaleHandlePoints_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, asEdgePoint_Object, rVector_Object);
 
   if (!intersection)
   {
@@ -592,7 +587,7 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateROIScaleHandles2D()
 }
 
 //----------------------------------------------------------------------
-void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateHandleToWorldTransform(vtkTransform* handleToWorldTransform)
+void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdateHandleToWorldTransform(vtkTransform *handleToWorldTransform)
 {
   handleToWorldTransform->Identity();
   if (!this->GetMarkupsNode())
@@ -639,38 +634,38 @@ bool vtkSlicerMarkupsInteractionWidgetRepresentation::GetHandleVisibility(int ty
   {
     switch (index)
     {
-      case vtkMRMLMarkupsROIDisplayNode::HandleLFace:
-      case vtkMRMLMarkupsROIDisplayNode::HandleRFace:
-        visibilityIndex = 0;
-        break;
-      case vtkMRMLMarkupsROIDisplayNode::HandlePFace:
-      case vtkMRMLMarkupsROIDisplayNode::HandleAFace:
-        visibilityIndex = 1;
-        break;
-      case vtkMRMLMarkupsROIDisplayNode::HandleIFace:
-      case vtkMRMLMarkupsROIDisplayNode::HandleSFace:
-        visibilityIndex = 2;
-        break;
-      default:
-        visibilityIndex = 3;
-        break;
+    case vtkMRMLMarkupsROIDisplayNode::HandleLFace:
+    case vtkMRMLMarkupsROIDisplayNode::HandleRFace:
+      visibilityIndex = 0;
+      break;
+    case vtkMRMLMarkupsROIDisplayNode::HandlePFace:
+    case vtkMRMLMarkupsROIDisplayNode::HandleAFace:
+      visibilityIndex = 1;
+      break;
+    case vtkMRMLMarkupsROIDisplayNode::HandleIFace:
+    case vtkMRMLMarkupsROIDisplayNode::HandleSFace:
+      visibilityIndex = 2;
+      break;
+    default:
+      visibilityIndex = 3;
+      break;
     }
   }
   else if (type == InteractionScaleHandle && vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode()))
   {
     switch (index)
     {
-      case vtkMRMLMarkupsPlaneDisplayNode::HandleLEdge:
-      case vtkMRMLMarkupsPlaneDisplayNode::HandleREdge:
-        visibilityIndex = 0;
-        break;
-      case vtkMRMLMarkupsPlaneDisplayNode::HandleAEdge:
-      case vtkMRMLMarkupsPlaneDisplayNode::HandlePEdge:
-        visibilityIndex = 1;
-        break;
-      default:
-        visibilityIndex = 3;
-        break;
+    case vtkMRMLMarkupsPlaneDisplayNode::HandleLEdge:
+    case vtkMRMLMarkupsPlaneDisplayNode::HandleREdge:
+      visibilityIndex = 0;
+      break;
+    case vtkMRMLMarkupsPlaneDisplayNode::HandleAEdge:
+    case vtkMRMLMarkupsPlaneDisplayNode::HandlePEdge:
+      visibilityIndex = 1;
+      break;
+    default:
+      visibilityIndex = 3;
+      break;
     }
   }
 
@@ -680,7 +675,7 @@ bool vtkSlicerMarkupsInteractionWidgetRepresentation::GetHandleVisibility(int ty
     return false;
   }
 
-  bool handleVisibility[4] = { false, false, false, false };
+  bool handleVisibility[4] = {false, false, false, false};
   if (markupsComponentType == vtkMRMLMarkupsDisplayNode::ComponentRotationHandle)
   {
     this->GetDisplayNode()->GetRotationHandleComponentVisibility(handleVisibility);
@@ -701,28 +696,27 @@ bool vtkSlicerMarkupsInteractionWidgetRepresentation::GetHandleVisibility(int ty
 void vtkSlicerMarkupsInteractionWidgetRepresentation::CreateScaleHandles()
 {
   double distance = 1.5;
-  vtkMRMLMarkupsPlaneNode* planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
-  vtkMRMLMarkupsROINode* roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsPlaneNode *planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsROINode *roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
   if (planeNode || roiNode)
   {
     vtkNew<vtkPoints> points;
-    points->InsertNextPoint(distance, 0.0, 0.0); // X-axis +ve
-    points->InsertNextPoint(0.0, distance, 0.0); // Y-axis +ve
-    points->InsertNextPoint(0.0, 0.0, distance); // Z-axis +ve
-    points->InsertNextPoint(-distance, 0.0, 0.0); // X-axis -ve
-    points->InsertNextPoint(0.0, -distance, 0.0); // Y-axis -ve
-    points->InsertNextPoint(0.0, 0.0, -distance); // Z-axis -ve
-
     if (roiNode)
     {
-      points->InsertNextPoint(distance, distance, distance);
-      points->InsertNextPoint(distance, distance, -distance);
-      points->InsertNextPoint(distance, -distance, distance);
-      points->InsertNextPoint(distance, -distance, -distance);
-      points->InsertNextPoint(-distance, distance, distance);
-      points->InsertNextPoint(-distance, distance, -distance);
-      points->InsertNextPoint(-distance, -distance, distance);
-      points->InsertNextPoint(-distance, -distance, -distance);
+      points->InsertNextPoint(distance, 0.0, 0.0);              // +ve X
+      points->InsertNextPoint(0.0, distance, 0.0);              // +ve Y
+      points->InsertNextPoint(0.0, 0.0, distance);              // +ve Z
+      points->InsertNextPoint(-distance, 0.0, 0.0);             // -ve X
+      points->InsertNextPoint(0.0, -distance, 0.0);             // -ve Y
+      points->InsertNextPoint(0.0, 0.0, -distance);             // -ve Z
+      points->InsertNextPoint(distance, distance, distance);    // +ve X, +ve Y, +ve Z
+      points->InsertNextPoint(distance, distance, -distance);   // +ve X, +ve Y, -ve Z
+      points->InsertNextPoint(distance, -distance, distance);   // +ve X, -ve Y, +ve Z
+      points->InsertNextPoint(distance, -distance, -distance);  // +ve X, -ve Y, -ve Z
+      points->InsertNextPoint(-distance, distance, distance);   // -ve X, +ve Y, +ve Z
+      points->InsertNextPoint(-distance, distance, -distance);  // -ve X, +ve Y, -ve Z
+      points->InsertNextPoint(-distance, -distance, distance);  // -ve X, -ve Y, +ve Z
+      points->InsertNextPoint(-distance, -distance, -distance); // -ve X, -ve Y, -ve Z
       if (this->GetSliceNode())
       {
         for (unsigned long i = vtkMRMLMarkupsROIDisplayNode::HandleLPEdge; i < vtkMRMLMarkupsROIDisplayNode::HandleROI_Last; ++i)
@@ -733,10 +727,14 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::CreateScaleHandles()
     }
     else if (planeNode)
     {
-      points->InsertNextPoint(distance, distance, 0.0);
-      points->InsertNextPoint(-distance, distance, 0.0);
-      points->InsertNextPoint(-distance, -distance, 0.0);
-      points->InsertNextPoint(distance, -distance, 0.0);
+      points->InsertNextPoint(distance, 0.0, 0.0);        // +ve X
+      points->InsertNextPoint(0.0, distance, 0.0);        // +ve Y
+      points->InsertNextPoint(-distance, 0.0, 0.0);       // -ve X
+      points->InsertNextPoint(0.0, -distance, 0.0);       // -ve Y
+      points->InsertNextPoint(distance, distance, 0.0);   // +ve X, +ve Y
+      points->InsertNextPoint(-distance, distance, 0.0);  // -ve X, +ve Y
+      points->InsertNextPoint(-distance, -distance, 0.0); // -ve X, -ve Y
+      points->InsertNextPoint(distance, -distance, 0.0);  // +ve X, -ve Y
     }
 
     this->Pipeline->ScaleHandlePoints->SetPoints(points);
@@ -784,47 +782,47 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::GetInteractionHandleAxisLo
   {
     switch (index)
     {
-      case vtkMRMLMarkupsPlaneDisplayNode::HandleLEdge:
-        axis_Local[0] = 1.0;
-        break;
-      case vtkMRMLMarkupsPlaneDisplayNode::HandleREdge:
-        axis_Local[0] = -1.0;
-        break;
-      case vtkMRMLMarkupsPlaneDisplayNode::HandleAEdge:
-        axis_Local[1] = 1.0;
-        break;
-      case vtkMRMLMarkupsPlaneDisplayNode::HandlePEdge:
-        axis_Local[1] = -1.0;
-        break;
-      default:
-        break;
+    case vtkMRMLMarkupsPlaneDisplayNode::HandleLEdge:
+      axis_Local[0] = 1.0;
+      break;
+    case vtkMRMLMarkupsPlaneDisplayNode::HandleREdge:
+      axis_Local[0] = -1.0;
+      break;
+    case vtkMRMLMarkupsPlaneDisplayNode::HandleAEdge:
+      axis_Local[1] = 1.0;
+      break;
+    case vtkMRMLMarkupsPlaneDisplayNode::HandlePEdge:
+      axis_Local[1] = -1.0;
+      break;
+    default:
+      break;
     }
   }
   else if (vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode()))
   {
     switch (index)
     {
-      case vtkMRMLMarkupsROIDisplayNode::HandleLFace:
-        axis_Local[0] = -1.0;
-        break;
-      case  vtkMRMLMarkupsROIDisplayNode::HandleRFace:
-        axis_Local[0] = 1.0;
-        break;
-      case vtkMRMLMarkupsROIDisplayNode::HandlePFace:
-        axis_Local[1] = -1.0;
-        break;
-      case  vtkMRMLMarkupsROIDisplayNode::HandleAFace:
-        axis_Local[1] = 1.0;
-        break;
-      case vtkMRMLMarkupsROIDisplayNode::HandleIFace:
-        axis_Local[2] = -1.0;
-        break;
-      case  vtkMRMLMarkupsROIDisplayNode::HandleSFace:
-        axis_Local[2] = 1.0;
-        break;
-      default:
-        // Other handles scaling are not restricted to a single axis
-        break;
+    case vtkMRMLMarkupsROIDisplayNode::HandleLFace:
+      axis_Local[0] = -1.0;
+      break;
+    case vtkMRMLMarkupsROIDisplayNode::HandleRFace:
+      axis_Local[0] = 1.0;
+      break;
+    case vtkMRMLMarkupsROIDisplayNode::HandlePFace:
+      axis_Local[1] = -1.0;
+      break;
+    case vtkMRMLMarkupsROIDisplayNode::HandleAFace:
+      axis_Local[1] = 1.0;
+      break;
+    case vtkMRMLMarkupsROIDisplayNode::HandleIFace:
+      axis_Local[2] = -1.0;
+      break;
+    case vtkMRMLMarkupsROIDisplayNode::HandleSFace:
+      axis_Local[2] = 1.0;
+      break;
+    default:
+      // Other handles scaling are not restricted to a single axis
+      break;
     }
   }
   else
@@ -861,68 +859,68 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::GetHandleColor(int type, i
     return;
   }
 
-  vtkMRMLMarkupsPlaneNode* planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
-  vtkMRMLMarkupsROINode* roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsPlaneNode *planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(this->GetMarkupsNode());
+  vtkMRMLMarkupsROINode *roiNode = vtkMRMLMarkupsROINode::SafeDownCast(this->GetMarkupsNode());
   if (!planeNode && !roiNode)
   {
     Superclass::GetHandleColor(type, index, color);
     return;
   }
 
-  double red[3] = { 0.80, 0.35, 0.35 };
-  double redSelected[3] = { 0.70, 0.07, 0.07 };
+  double red[3] = {0.80, 0.35, 0.35};
+  double redSelected[3] = {0.70, 0.07, 0.07};
 
-  double green[3] = { 0.35, 0.80, 0.35 };
-  double greenSelected[3] = { 0.07, 0.70, 0.07 };
+  double green[3] = {0.35, 0.80, 0.35};
+  double greenSelected[3] = {0.07, 0.70, 0.07};
 
-  double blue[3] = { 0.35, 0.35, 0.8 };
-  double blueSelected[3] = { 0.07, 0.07, 0.70 };
+  double blue[3] = {0.35, 0.35, 0.8};
+  double blueSelected[3] = {0.07, 0.07, 0.70};
 
-  double white[3] = { 0.80, 0.80, 0.80 };
-  double whiteSelected[3] = { 1.00, 1.00, 1.00 };
+  double white[3] = {0.80, 0.80, 0.80};
+  double whiteSelected[3] = {1.00, 1.00, 1.00};
 
-  double* currentColor = white;
-  double* selectedColor = whiteSelected;
+  double *currentColor = white;
+  double *selectedColor = whiteSelected;
 
   if (planeNode)
   {
     switch (index)
     {
-      case 0:
-      case 1:
-        currentColor = red;
-        selectedColor = redSelected;
-        break;
-      case 2:
-      case 3:
-        currentColor = green;
-        selectedColor = greenSelected;
-        break;
-      default:
-        break;
+    case 0:
+    case 1:
+      currentColor = red;
+      selectedColor = redSelected;
+      break;
+    case 2:
+    case 3:
+      currentColor = green;
+      selectedColor = greenSelected;
+      break;
+    default:
+      break;
     }
   }
   else if (roiNode)
   {
     switch (index)
     {
-      case 0:
-      case 1:
-        currentColor = red;
-        selectedColor = redSelected;
-        break;
-      case 2:
-      case 3:
-        currentColor = green;
-        selectedColor = greenSelected;
-        break;
-      case 4:
-      case 5:
-        currentColor = blue;
-        selectedColor = blueSelected;
-        break;
-      default:
-        break;
+    case 0:
+    case 1:
+      currentColor = red;
+      selectedColor = redSelected;
+      break;
+    case 2:
+    case 3:
+      currentColor = green;
+      selectedColor = greenSelected;
+      break;
+    case 4:
+    case 5:
+      currentColor = blue;
+      selectedColor = blueSelected;
+      break;
+    default:
+      break;
     }
   }
 
@@ -948,10 +946,10 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::GetInteractionHandlePositi
     vtkErrorMacro("GetInteractionHandlePositionWorld: Invalid position argument");
   }
 
-  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
+  vtkMRMLMarkupsNode *markupsNode = this->GetMarkupsNode();
   if (vtkMRMLMarkupsROINode::SafeDownCast(markupsNode) || vtkMRMLMarkupsPlaneNode::SafeDownCast(markupsNode))
   {
-    vtkPolyData* handlePolyData = this->GetHandlePolydata(type);
+    vtkPolyData *handlePolyData = this->GetHandlePolydata(type);
     if (!handlePolyData)
     {
       return;
@@ -965,18 +963,34 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::GetInteractionHandlePositi
     Superclass::GetInteractionHandlePositionWorld(type, index, positionWorld);
     return;
   }
+
+  vtkPolyData *handlePolyData = this->GetHandlePolydata(type);
+  if (!handlePolyData)
+  {
+    return;
+  }
+
+  if (handlePolyData->GetNumberOfPoints() <= index)
+  {
+    vtkErrorMacro("GetInteractionHandlePositionWorld: Type: " << type << " Invalid handle index: "
+                                                              << index << " greater than the number of points: " << handlePolyData->GetNumberOfPoints());
+    return;
+  }
+
+  handlePolyData->GetPoint(index, positionWorld);
+  this->Pipeline->HandleToWorldTransform->TransformPoint(positionWorld, positionWorld);
 }
 
 //-----------------------------------------------------------------------------
 bool vtkSlicerMarkupsInteractionWidgetRepresentation::AddScaleEdgeIntersection(
-  int pointIndex, vtkIdTypeArray* visibilityArray, vtkPoints* scaleHandlePoints_Object,
-  double viewPlaneNormal_Object[3], double viewPlaneOrigin_Object[3], double edgePoint1_Object[3], double edgeVector_Object[3])
+    int pointIndex, vtkIdTypeArray *visibilityArray, vtkPoints *scaleHandlePoints_Object,
+    double viewPlaneNormal_Object[3], double viewPlaneOrigin_Object[3], double edgePoint1_Object[3], double edgeVector_Object[3])
 {
-  double edgePoint2_Object[3] = { 0.0, 0.0, 0.0 };
+  double edgePoint2_Object[3] = {0.0, 0.0, 0.0};
   vtkMath::Add(edgePoint1_Object, edgeVector_Object, edgePoint2_Object);
 
   double t = 0.0;
-  double edgeIntersection_Object[3] = { 0.0, 0.0, 0.0 };
+  double edgeIntersection_Object[3] = {0.0, 0.0, 0.0};
   if (!vtkPlane::IntersectWithLine(edgePoint1_Object, edgePoint2_Object, viewPlaneNormal_Object, viewPlaneOrigin_Object, t, edgeIntersection_Object))
   {
     scaleHandlePoints_Object->SetPoint(pointIndex, edgeIntersection_Object);
@@ -995,7 +1009,7 @@ bool vtkSlicerMarkupsInteractionWidgetRepresentation::GetApplyScaleToPosition(in
     return Superclass::GetApplyScaleToPosition(type, index);
   }
 
-  vtkMRMLMarkupsNode* markupsNode = this->GetMarkupsNode();
+  vtkMRMLMarkupsNode *markupsNode = this->GetMarkupsNode();
   if (vtkMRMLMarkupsROINode::SafeDownCast(markupsNode) || vtkMRMLMarkupsPlaneNode::SafeDownCast(markupsNode))
   {
     return false;

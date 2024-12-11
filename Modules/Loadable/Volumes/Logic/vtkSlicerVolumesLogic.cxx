@@ -488,7 +488,7 @@ void vtkSlicerVolumesLogic::InitializeStorageNode(
       // it's a list of uris
       int numURIs = fileList->GetNumberOfValues();
       vtkDebugMacro("Have a list of " << numURIs << " uris that go along with the archetype");
-      vtkStdString thisURI;
+      std::string thisURI;
       storageNode->ResetURIList();
       for (int n = 0; n < numURIs; n++)
       {
@@ -504,7 +504,7 @@ void vtkSlicerVolumesLogic::InitializeStorageNode(
     {
       int numFiles = fileList->GetNumberOfValues();
       vtkDebugMacro("Have a list of " << numFiles << " files that go along with the archetype");
-      vtkStdString thisFileName;
+      std::string thisFileName;
       storageNode->ResetFileNameList();
       for (int n = 0; n < numFiles; n++)
       {
@@ -1652,7 +1652,7 @@ void vtkSlicerVolumesLogic::InitializeDefaultVolumeDisplayPresets()
       vtkErrorMacro(<< errorPrefix << " Error reading preset " << presetIndex << ". Missing required property name, id, window, level, or color.");
       continue;
     }
-    if (!preset["name"].IsString() || !preset["id"].IsString() || !preset["window"].IsDouble() || !preset["level"].IsDouble())
+    if (!preset["name"].IsString() || !preset["id"].IsString() || !preset["window"].IsNumber() || !preset["level"].IsNumber())
     {
       vtkErrorMacro(<< errorPrefix << " Error reading preset " << presetIndex << ". Wrong type for property name, id, window, or level.");
       continue;
@@ -1663,7 +1663,7 @@ void vtkSlicerVolumesLogic::InitializeDefaultVolumeDisplayPresets()
     presetObj.level = preset["level"].GetDouble();
     presetObj.window = preset["window"].GetDouble();
     presetObj.valid = true;
-    if (!preset["name"].IsString() || !preset["id"].IsString() || !preset["window"].IsDouble() || !preset["level"].IsDouble() || !preset["color"].IsString())
+    if (!preset["name"].IsString() || !preset["id"].IsString() || !preset["window"].IsNumber() || !preset["level"].IsNumber() || !preset["color"].IsString())
     {
       vtkErrorMacro(<< errorPrefix << " Error reading preset " << presetIndex << ". Wrong type for property name, id, window, or level.");
       continue;

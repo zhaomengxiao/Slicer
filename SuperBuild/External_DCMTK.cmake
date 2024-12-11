@@ -41,18 +41,7 @@ if(NOT DEFINED DCMTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
 
   ExternalProject_SetIfNotDefined(
     Slicer_${proj}_GIT_TAG
-    # Based of the official DCMTK release DCMTK-3.6.6
-    # * https://github.com/DCMTK/dcmtk/commit/6cb30bd7fb42190e0188afbd8cb961c62a6fb9c9
-    # * https://github.com/DCMTK/dcmtk/releases/tag/DCMTK-3.6.6
-    #
-    # with these backported patches:
-    # * Fixed extra padding created for some segmentations.
-    #   https://github.com/DCMTK/dcmtk/commit/b665e2ec2d5ce435e28da6c938736dcfa84d0da6
-    #
-    # * Made file extensions explicit for CMake CMP0115
-    #   https://github.com/DCMTK/dcmtk/commit/d090b6d7c65e52e01e436a2473dc8ba3f384efbb
-    #
-    "0f9bf4d9e9a778c11fdddafca691b451c2b621bc" # patched-DCMTK-3.6.6_20210115
+    "ea07125078cd097245867a71d8fba8b36fd92878" # patched-DCMTK-3.6.8_20241024
     QUIET
     )
 
@@ -92,9 +81,8 @@ if(NOT DEFINED DCMTK_DIR AND NOT Slicer_USE_SYSTEM_${proj})
       -DDCMTK_WITH_ICONV:BOOL=OFF  # see CTK github issue #178
       -DDCMTK_WITH_SNDFILE:BOOL=OFF # see DCMQI github issue #395
       -DDCMTK_OVERWRITE_WIN32_COMPILER_FLAGS:BOOL=OFF
-      -DDCMTK_ENABLE_BUILTIN_DICTIONARY:BOOL=ON
+      -DDCMTK_DEFAULT_DICT:STRING=builtin
       -DDCMTK_ENABLE_PRIVATE_TAGS:BOOL=ON
-      -DDCMTK_WITH_ICU:BOOL=OFF
       ${EXTERNAL_PROJECT_OPTIONAL_CMAKE_CACHE_ARGS}
     INSTALL_COMMAND ""
     DEPENDS

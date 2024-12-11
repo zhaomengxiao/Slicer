@@ -26,10 +26,10 @@ Version:   $Revision: 1.2 $
 #include <vtkMatrix4x4.h>
 #include <vtkNew.h>
 #include <vtkObjectFactory.h>
+#include <vtkPlane.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtkVector.h>
-
 
 // VNL includes
 #include <vnl/vnl_double_3.h>
@@ -103,6 +103,8 @@ vtkMRMLSliceNode::vtkMRMLSliceNode()
   this->WidgetNormalLockedToCamera = 0;
   this->UseLabelOutline = 0;
 
+  this->SliceEdgeVisibility3D = true;
+
   this->LayoutGridColumns = 1;
   this->LayoutGridRows = 1;
 
@@ -126,6 +128,8 @@ vtkMRMLSliceNode::vtkMRMLSliceNode()
 
   this->OrientationMarkerEnabled = true;
   this->RulerEnabled = true;
+
+  this->ImplicitFunction = vtkSmartPointer<vtkPlane>::New();
 }
 
 //----------------------------------------------------------------------------
@@ -842,6 +846,13 @@ void vtkMRMLSliceNode::UpdateMatrices()
       modified = true;
     }
 
+    this->ImplicitFunction->SetNormal(this->SliceToRAS->GetElement(0, 2),
+                                      this->SliceToRAS->GetElement(1, 2),
+                                      this->SliceToRAS->GetElement(2, 2));
+    this->ImplicitFunction->SetOrigin(this->SliceToRAS->GetElement(0, 3),
+                                      this->SliceToRAS->GetElement(1, 3),
+                                      this->SliceToRAS->GetElement(2, 3));
+
     if (modified)
     {
       this->Modified();
@@ -901,6 +912,7 @@ void vtkMRMLSliceNode::WriteXML(ostream& of, int nIndent)
   vtkMRMLWriteXMLBooleanMacro(widgetVisibility, WidgetVisible);
   vtkMRMLWriteXMLBooleanMacro(widgetOutlineVisibility, WidgetOutlineVisible);
   vtkMRMLWriteXMLBooleanMacro(useLabelOutline, UseLabelOutline);
+  vtkMRMLWriteXMLBooleanMacro(sliceEdgeVisibility3D, SliceEdgeVisibility3D);
   vtkMRMLWriteXMLIntMacro(sliceSpacingMode, SliceSpacingMode);
   vtkMRMLWriteXMLVectorMacro(prescribedSliceSpacing, PrescribedSliceSpacing, double, 3);
 
@@ -953,6 +965,7 @@ void vtkMRMLSliceNode::ReadXMLAttributes(const char** atts)
   vtkMRMLReadXMLBooleanMacro(widgetVisibility, WidgetVisible);
   vtkMRMLReadXMLBooleanMacro(widgetOutlineVisibility, WidgetOutlineVisible);
   vtkMRMLReadXMLBooleanMacro(useLabelOutline, UseLabelOutline);
+  vtkMRMLReadXMLBooleanMacro(sliceEdgeVisibility3D, SliceEdgeVisibility3D);
   vtkMRMLReadXMLStdStringMacro(orientation, Orientation);
   vtkMRMLReadXMLStringMacro(defaultOrientation, DefaultOrientation);
   vtkMRMLReadXMLStringMacro(orientationReference, OrientationReference);
@@ -1109,6 +1122,8 @@ void vtkMRMLSliceNode::CopyContent(vtkMRMLNode* anode, bool deepCopy/*=true*/)
   vtkMRMLCopyBooleanMacro(WidgetOutlineVisible);
   vtkMRMLCopyBooleanMacro(UseLabelOutline);
 
+  vtkMRMLCopyBooleanMacro(SliceEdgeVisibility3D);
+
   vtkMRMLCopyIntMacro(SliceResolutionMode);
 
   vtkMRMLCopyVectorMacro(FieldOfView, double, 3);
@@ -1183,6 +1198,8 @@ void vtkMRMLSliceNode::PrintSelf(ostream& os, vtkIndent indent)
   vtkMRMLPrintBooleanMacro(WidgetVisible);
   vtkMRMLPrintBooleanMacro(WidgetOutlineVisible);
   vtkMRMLPrintBooleanMacro(UseLabelOutline);
+
+  vtkMRMLPrintBooleanMacro(SliceEdgeVisibility3D);
 
   os << indent << "Jump mode: ";
   if (this->JumpMode == CenteredJumpSlice)
@@ -2084,4 +2101,10 @@ int vtkMRMLSliceNode::GetSlabReconstructionTypeFromString(const char* name)
   }
   // unknown name
   return -1;
+}
+
+//-----------------------------------------------------------
+vtkImplicitFunction* vtkMRMLSliceNode::GetImplicitFunctionWorld()
+{
+  return this->ImplicitFunction;
 }

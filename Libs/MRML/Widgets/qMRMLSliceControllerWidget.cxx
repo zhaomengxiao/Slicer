@@ -40,7 +40,6 @@
 #include <ctkDoubleSpinBox.h>
 
 // qMRML includes
-#include "qMRMLColors.h"
 #include "qMRMLSliceControllerWidget_p.h"
 #include "qMRMLSliderWidget.h"
 
@@ -188,6 +187,8 @@ void qMRMLSliceControllerWidgetPrivate::setupPopupUi()
 
   QObject::connect(this->actionShow_in_3D, SIGNAL(toggled(bool)),
                    q, SLOT(setSliceVisible(bool)));
+  QObject::connect(this->actionSliceEdgeVisibility3D, SIGNAL(triggered(bool)),
+                   q, SLOT(setSliceEdgeVisibility3D(bool)));
   QObject::connect(this->actionFit_to_window, SIGNAL(triggered()),
                    q, SLOT(fitSliceToBackground()));
   QObject::connect(this->actionRotate_to_volume_plane, SIGNAL(triggered()),
@@ -202,6 +203,8 @@ void qMRMLSliceControllerWidgetPrivate::setupPopupUi()
                    q, SLOT(setCompositingToAdd()));
   QObject::connect(this->actionCompositingSubtract, SIGNAL(triggered()),
                    q, SLOT(setCompositingToSubtract()));
+  QObject::connect(this->actionClipToBackground, SIGNAL(triggered(bool)),
+                   q, SLOT(setClipToBackground(bool)));
   QObject::connect(this->actionSliceSpacingModeAutomatic, SIGNAL(toggled(bool)),
                    q, SLOT(setSliceSpacingMode(bool)));
 
@@ -571,6 +574,8 @@ void qMRMLSliceControllerWidgetPrivate::setupCompositingMenu()
   this->CompositingMenu->addAction(this->actionCompositingReverse_alpha_blend);
   this->CompositingMenu->addAction(this->actionCompositingAdd);
   this->CompositingMenu->addAction(this->actionCompositingSubtract);
+  this->CompositingMenu->addSeparator();
+  this->CompositingMenu->addAction(this->actionClipToBackground);
   QActionGroup* compositingGroup = new QActionGroup(this->CompositingMenu);
   compositingGroup->addAction(this->actionCompositingAlpha_blend);
   compositingGroup->addAction(this->actionCompositingReverse_alpha_blend);
@@ -723,6 +728,9 @@ void qMRMLSliceControllerWidgetPrivate::setupSliceModelMenu()
   originSliceModelAction->setDefaultWidget(originSliceModel);
   originSliceModelMenu->addAction(originSliceModelAction);
   this->SliceModelMenu->addMenu(originSliceModelMenu);
+
+  this->SliceModelMenu->addSeparator();
+  this->SliceModelMenu->addAction(this->actionSliceEdgeVisibility3D);
 }
 
 // --------------------------------------------------------------------------
@@ -1003,6 +1011,8 @@ void qMRMLSliceControllerWidgetPrivate::updateWidgetFromMRMLSliceNode()
   this->SliceModelOriginYSpinBox->setValue(UVWOrigin[1]);
   this->SliceModelOriginYSpinBox->blockSignals(wasBlocked);
 
+  this->actionSliceEdgeVisibility3D->setChecked(sliceNode->GetSliceEdgeVisibility3D());
+
   // OrientationMarker (check the selected option)
   QAction* action = qobject_cast<QAction*>(this->OrientationMarkerTypesMapper->mapping(sliceNode->GetOrientationMarkerType()));
   if (action)
@@ -1119,6 +1129,8 @@ void qMRMLSliceControllerWidgetPrivate::updateWidgetFromMRMLSliceCompositeNode()
       this->actionCompositingSubtract->setChecked(true);
       break;
   }
+
+  this->actionClipToBackground->setChecked(this->MRMLSliceCompositeNode->GetClipToBackgroundVolume());
 
   // Since we blocked the signals when setting the
   // Foreground/Background/Label volumes, we need to explicitly call
@@ -1665,15 +1677,15 @@ void qMRMLSliceControllerWidgetPrivate::onSegmentVisibilitySelectionChanged(QStr
       // the segment selector widget does not know about this segment yet, so do not update the MRML node from it
       continue;
     }
-    bool segmentVisibile = displayNode->GetSegmentVisibility(*segmentIDIt);
+    bool segmentVisible = displayNode->GetSegmentVisibility(*segmentIDIt);
     // Hide segment that is visible but its checkbox has been unchecked
-    if (segmentVisibile && !selectedSegmentIDs.contains(segmentID))
+    if (segmentVisible && !selectedSegmentIDs.contains(segmentID))
     {
       displayNode->SetSegmentVisibility(*segmentIDIt, false);
       return; // This event handler runs after each check/uncheck, so handling the first mismatch is enough
     }
     // Show segment that is not visible but its checkbox has been checked
-    else if (!segmentVisibile && selectedSegmentIDs.contains(segmentID))
+    else if (!segmentVisible && selectedSegmentIDs.contains(segmentID))
     {
       displayNode->SetSegmentVisibility(*segmentIDIt, true);
       return; // This event handler runs after each check/uncheck, so handling the first mismatch is enough
@@ -1767,7 +1779,6 @@ void qMRMLSliceControllerWidget::setMRMLSliceNode(vtkMRMLSliceNode* newSliceNode
 //---------------------------------------------------------------------------
 vtkMRMLSliceNode* qMRMLSliceControllerWidget::mrmlSliceNode()const
 {
-  Q_D(const qMRMLSliceControllerWidget);
   return vtkMRMLSliceNode::SafeDownCast(this->mrmlViewNode());
 }
 
@@ -1865,8 +1876,6 @@ void qMRMLSliceControllerWidget::setSliceViewSize(const QSize& newSize)
 //---------------------------------------------------------------------------
 QString qMRMLSliceControllerWidget::sliceViewName() const
 {
-  Q_D(const qMRMLSliceControllerWidget);
-
   if (!this->mrmlSliceNode())
   {
     qCritical() << "qMRMLSliceControllerWidget::setSliceViewName failed: MRMLSliceNode is invalid";
@@ -1878,8 +1887,6 @@ QString qMRMLSliceControllerWidget::sliceViewName() const
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceViewName(const QString& newSliceViewName)
 {
-  Q_D(qMRMLSliceControllerWidget);
-
   if (!this->mrmlSliceNode())
   {
     qCritical() << "qMRMLSliceControllerWidget::setSliceViewName failed: MRMLSliceNode is invalid";
@@ -1892,7 +1899,6 @@ void qMRMLSliceControllerWidget::setSliceViewName(const QString& newSliceViewNam
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceViewLabel(const QString& newSliceViewLabel)
 {
-  Q_D(qMRMLSliceControllerWidget);
   if (!this->mrmlSliceNode())
   {
     qCritical() << Q_FUNC_INFO << " failed: must set view node first";
@@ -1904,7 +1910,6 @@ void qMRMLSliceControllerWidget::setSliceViewLabel(const QString& newSliceViewLa
 //---------------------------------------------------------------------------
 QString qMRMLSliceControllerWidget::sliceViewLabel()const
 {
-  Q_D(const qMRMLSliceControllerWidget);
   if (!this->mrmlSliceNode())
   {
     qCritical() << Q_FUNC_INFO << " failed: must set view node first";
@@ -1916,7 +1921,6 @@ QString qMRMLSliceControllerWidget::sliceViewLabel()const
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceViewColor(const QColor& newSliceViewColor)
 {
-  Q_D(qMRMLSliceControllerWidget);
   if (!this->mrmlSliceNode())
   {
     qCritical() << "qMRMLSliceControllerWidget::setSliceViewName failed: MRMLSliceNode is invalid";
@@ -2052,7 +2056,7 @@ void qMRMLSliceControllerWidget::fitSliceToBackground()
   // This can be done by changing the interaction flag to
   // vtkMRMLSliceNode::FieldOfViewFlag
   d->SliceLogic->StartSliceNodeInteraction(vtkMRMLSliceNode::ResetFieldOfViewFlag);
-  d->SliceLogic->FitSliceToAll();
+  d->SliceLogic->FitSliceToBackground();
   this->mrmlSliceNode()->UpdateMatrices();
   d->SliceLogic->EndSliceNodeInteraction();
 }
@@ -2095,6 +2099,21 @@ void qMRMLSliceControllerWidget::setSliceVisible(bool visible)
 }
 
 //---------------------------------------------------------------------------
+void qMRMLSliceControllerWidget::setSliceEdgeVisibility3D(bool visible)
+{
+  Q_D(qMRMLSliceControllerWidget);
+
+  if (!this->mrmlSliceNode() || !d->MRMLSliceCompositeNode || !this->mrmlScene())
+  {
+    return;
+  }
+
+  d->SliceLogic->StartSliceNodeInteraction(vtkMRMLSliceNode::SliceEdgeVisibility3DFlag);
+  this->mrmlSliceNode()->SetSliceEdgeVisibility3D(visible);
+  d->SliceLogic->EndSliceNodeInteraction();
+}
+
+//---------------------------------------------------------------------------
 bool qMRMLSliceControllerWidget::isLinked()const
 {
   Q_D(const qMRMLSliceControllerWidget);
@@ -2111,7 +2130,6 @@ bool qMRMLSliceControllerWidget::isLinked()const
 //---------------------------------------------------------------------------
 bool qMRMLSliceControllerWidget::isCompareView()const
 {
-  Q_D(const qMRMLSliceControllerWidget);
   return this->mrmlSliceNode() && QString(this->mrmlSliceNode()->GetLayoutName()).startsWith("Compare");
 }
 
@@ -2507,6 +2525,30 @@ void qMRMLSliceControllerWidget::setCompositingToSubtract()
 }
 
 //---------------------------------------------------------------------------
+void qMRMLSliceControllerWidget::setClipToBackground(bool enabled)
+{
+  Q_D(qMRMLSliceControllerWidget);
+  vtkSmartPointer<vtkCollection> nodes = d->saveNodesForUndo("vtkMRMLSliceCompositeNode");
+  if (!nodes.GetPointer())
+  {
+    return;
+  }
+  vtkMRMLSliceCompositeNode* node = nullptr;
+  vtkCollectionSimpleIterator it;
+  for (nodes->InitTraversal(it);(node = static_cast<vtkMRMLSliceCompositeNode*>(
+                                   nodes->GetNextItemAsObject(it)));)
+  {
+    // When slice nodes are linked, only allow one slice node's reformat widget to be on at a time
+    // If slice node's reformat widget was on, just turn all of them off
+    // If slice node's reformat widget was off, turn it on and turn all the other ones off
+    if (node == d->MRMLSliceCompositeNode || this->isLinked())
+    {
+      node->SetClipToBackgroundVolume(enabled);
+    }
+  }
+}
+
+//---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceSpacingMode(bool automatic)
 {
   Q_D(qMRMLSliceControllerWidget);
@@ -2574,7 +2616,6 @@ void qMRMLSliceControllerWidget::setSliceFOV(double fov)
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceModelFOV(int index, double fov)
 {
-  Q_D(qMRMLSliceControllerWidget);
   double oldFov[3];
   this->mrmlSliceNode()->GetUVWExtents(oldFov);
   if (qAbs(oldFov[index] - fov) < 0.01)
@@ -2600,7 +2641,6 @@ void qMRMLSliceControllerWidget::setSliceModelFOVY(double fov)
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceModelDimension(int index, int dimension)
 {
-  Q_D(qMRMLSliceControllerWidget);
   int oldDimension[3];
   this->mrmlSliceNode()->GetUVWDimensions(oldDimension);
   if (qAbs(oldDimension[index] - dimension) < 0.01)
@@ -2617,6 +2657,7 @@ void qMRMLSliceControllerWidget::setSliceModelDimensionX(int dimension)
 {
   this->setSliceModelDimension(0,dimension);
 }
+
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceModelDimensionY(int dimension)
 {
@@ -2626,7 +2667,6 @@ void qMRMLSliceControllerWidget::setSliceModelDimensionY(int dimension)
 // --------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceModelOrigin(int index, double origin)
 {
-  Q_D(qMRMLSliceControllerWidget);
   double oldOrigin[3];
   this->mrmlSliceNode()->GetUVWOrigin(oldOrigin);
   if (qAbs(oldOrigin[index] - origin) < 0.01)
@@ -2683,7 +2723,6 @@ void qMRMLSliceControllerWidget::setSliceModelModeCustom()
 //---------------------------------------------------------------------------
 void qMRMLSliceControllerWidget::setSliceModelMode(int mode)
 {
-  Q_D(qMRMLSliceControllerWidget);
   this->mrmlSliceNode()->SetSliceResolutionMode(mode);
 }
 

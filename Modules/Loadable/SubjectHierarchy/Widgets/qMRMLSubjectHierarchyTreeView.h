@@ -101,6 +101,9 @@ class Q_SLICER_MODULE_SUBJECTHIERARCHY_WIDGETS_EXPORT qMRMLSubjectHierarchyTreeV
   /// \deprecated Kept only for backwards compatibility. Use addItemAttributeFilter() or removeItemAttributeFilter() instead.
   Q_PROPERTY(QString attributeValueFilter READ attributeValueFilter WRITE setAttributeValueFilter)
 
+  /// Double-clicking the color will show a standard terminology selector if true, otherwise show simple color picker
+  Q_PROPERTY(bool useTerminologySelector READ useTerminologySelector WRITE setUseTerminologySelector)
+
 public:
   typedef QTreeView Superclass;
   qMRMLSubjectHierarchyTreeView(QWidget *parent=nullptr);
@@ -218,6 +221,10 @@ public:
   void setDescriptionColumnVisible(bool visible);
   bool descriptionColumnVisible();
 
+  /// Returns true if standard terminologies are used for choosing color.
+  /// If false then simple selectors are used.
+  bool useTerminologySelector()const;
+
 public slots:
   /// Set MRML scene
   virtual void setMRMLScene(vtkMRMLScene* scene);
@@ -313,6 +320,9 @@ public slots:
   void setAttributeNameFilter(QString& filter);
   void setAttributeValueFilter(QString& filter);
 
+  /// Set if standard terminologies are used for choosing segment name and color.
+  void setUseTerminologySelector(bool useTerminologySelector);
+
 signals:
   void currentItemChanged(vtkIdType);
   void currentItemsChanged(QList<vtkIdType>);
@@ -345,11 +355,6 @@ protected slots:
   virtual void onMRMLSceneEndBatchProcess(vtkObject* sceneObject);
 
   void onCustomContextMenu(const QPoint& point);
-
-  virtual void onTransformActionSelected();
-  virtual void onTransformInteractionInViewToggled(bool show);
-  virtual void onTransformEditProperties();
-  virtual void onCreateNewTransform();
 
 protected:
   /// Set the subject hierarchy node found in the given scene. Called only internally.

@@ -11,12 +11,12 @@ Slicer can also run on virtual machines and docker containers. For example, [3D 
 ### Operating system versions
 
 - Windows: Windows 10 or 11, with all recommended updates installed. Windows 10 Version 1903 (May 2019 Update) version or later is required for support of international characters (UTF-8) in filenames and text. Microsoft does not support Windows 8.1 and Windows 7 anymore and Slicer is not tested on these legacy operating system versions, but may still work.
-- macOS: macOS Big Sur (11) or later (both Intel and ARM based systems). Latest public release is recommended.
+- macOS: macOS Ventura (13) or later (both Intel and ARM based systems). Latest public release is recommended.
 - Linux: Ubuntu 20.04 or later<br>Debian 10 or later<br>Fedora 35 or later<br>CentOS 7 or later. Latest LTS (Long-term-support) version is recommended.
 
 ### Recommended hardware configuration
 - Memory: more than 4GB (8 or more is recommended). As a general rule, have 10x more memory than the amount of data that you load.
-- Display: a minimum resolution of 1024 by 768 (1280 by 1024 or better is recommended).
+- Display: a minimum resolution of 1366 by 768 (1920 by 1080 or higher is recommended).
 - Graphics: Dedicated graphics hardware (discrete GPU) memory is recommended for fast volume rendering.
 GPU: Graphics must support minimum OpenGL 3.2. Integrated graphics card is sufficient for basic visualization. Discrete graphics card (such as NVidia GPU) is recommended for interactive 3D volume rendering and fast rendering of complex scenes. GPU texture memory (VRAM) should be larger than your largest dataset (e.g., working with 2GB data, get VRAM > 4GB) and check that your images fit in maximum texture dimensions of your GPU hardware. Except rendering, most calculations are performed on CPU, therefore having a faster GPU will generally not impact the overall speed of the application.
 - Some computations in 3D Slicer are multi-threaded and will benefit from multi core, multi CPU configurations.

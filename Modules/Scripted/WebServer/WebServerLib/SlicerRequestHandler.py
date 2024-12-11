@@ -958,7 +958,7 @@ space origin: %%origin%%
             if orientation.lower() == "coronal":
                 sliceNode.SetOrientationToCoronal()
             if orientation.lower() != previousOrientation:
-                sliceLogic.FitSliceToAll()
+                sliceLogic.FitSliceToBackground()
 
         imageData = sliceLogic.GetBlend().Update(0)
         imageData = sliceLogic.GetBlend().GetOutputDataObject(0)
@@ -1337,8 +1337,7 @@ space origin: %%origin%%
                 if currentIndentLevel == 0:
                     # first line (contains class name and pointer, not interesting)
                     continue
-                if currentIndentLevel < 2:
-                    currentIndentLevel = 2  # Error in print implementation of the node
+                currentIndentLevel = max(currentIndentLevel, 2)  # Error in print implementation of the node
                 if currentIndentLevel > previousIndentLevel:
                     # new indentation
                     keys.append(key)
