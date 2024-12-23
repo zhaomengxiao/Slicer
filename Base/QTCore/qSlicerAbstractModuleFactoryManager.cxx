@@ -402,9 +402,13 @@ qSlicerAbstractCoreModule* qSlicerAbstractModuleFactoryManager
     return nullptr;
   }
   qSlicerAbstractCoreModule* module = factory->instantiate(moduleName);
-  if (!module)
+  if (!module && !moduleName.contains("_r"))
   {
     qCritical() << "Fail to instantiate module " << moduleName;
+    return nullptr;
+  }
+  if (!module)
+  {
     return nullptr;
   }
   module->setName(moduleName);
