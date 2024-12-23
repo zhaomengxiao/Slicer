@@ -108,7 +108,10 @@ qSlicerAbstractModuleFactoryManagerPrivate::fileBasedFactories()const
 qSlicerAbstractModuleFactoryManagerPrivate::qSlicerModuleFactory*
 qSlicerAbstractModuleFactoryManagerPrivate
 ::registeredModuleFactory(const QString& moduleName)const
-{
+{ 
+  /*if (moduleName.contains("_r")) {
+    return nullptr;
+  }*/
   if (!this->RegisteredModules.contains(moduleName))
   {
     return nullptr;
@@ -268,11 +271,12 @@ void qSlicerAbstractModuleFactoryManager::registerModules()
   // then register file based factories
   foreach(const QString& path, d->SearchPaths)
   {
-    if (d->Verbose)
-    {
-      qDebug() << "Searching path: " << path;
-    }
-    this->registerModules(path);
+      if (d->Verbose)
+      {
+        qDebug() << "Searching path: " << path;
+      }
+        this->registerModules(path);
+      
   }
   emit this->modulesRegistered(d->RegisteredModules.keys());
 }
@@ -285,7 +289,9 @@ void qSlicerAbstractModuleFactoryManager::registerModules(const QString& path)
   foreach (const QFileInfo& file,
            directory.entryInfoList(QDir::Files))
   {
-    this->registerModule(file);
+   if(!path.contains("_r")){
+     this->registerModule(file);
+   }
   }
 }
 
@@ -374,7 +380,10 @@ void qSlicerAbstractModuleFactoryManager::instantiateModules()
   foreach (const QString& moduleName, d->RegisteredModules.keys())
   {
     emit moduleAboutToBeInstantiated(moduleName);
-    this->instantiateModule(moduleName);
+    if (!moduleName.contains("_r")) {
+      this->instantiateModule(moduleName);
+    }
+    
   }
 
   // XXX See issue #3804
@@ -402,13 +411,9 @@ qSlicerAbstractCoreModule* qSlicerAbstractModuleFactoryManager
     return nullptr;
   }
   qSlicerAbstractCoreModule* module = factory->instantiate(moduleName);
-  if (!module && !moduleName.contains("_r"))
-  {
-    qCritical() << "Fail to instantiate module " << moduleName;
-    return nullptr;
-  }
   if (!module)
   {
+    qCritical() << "Fail to instantiate module " << moduleName;
     return nullptr;
   }
   module->setName(moduleName);
@@ -433,7 +438,17 @@ qSlicerAbstractCoreModule* qSlicerAbstractModuleFactoryManager
 QStringList qSlicerAbstractModuleFactoryManager::registeredModuleNames() const
 {
   Q_D(const qSlicerAbstractModuleFactoryManager);
-  return d->RegisteredModules.keys();
+
+  // 获取所有注册模块的名称
+  QStringList allKeys = d->RegisteredModules.keys();
+
+  // 使用列表推导创建一个新列表，排除包含 "_r" 的键
+  QStringList filteredKeys;
+  foreach(const QString & key, allKeys) {
+    if (!key.endsWith("_r"))
+      filteredKeys.append(key);
+  }
+  return filteredKeys;
 }
 
 //-----------------------------------------------------------------------------
