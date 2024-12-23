@@ -285,7 +285,11 @@ void qSlicerAbstractModuleFactoryManager::registerModules(const QString& path)
   foreach (const QFileInfo& file,
            directory.entryInfoList(QDir::Files))
   {
-    this->registerModule(file);
+    auto filepath = file.absoluteFilePath();
+    if(!filepath.contains("_r.py")) 
+    {
+      this->registerModule(file);
+    }
   }
 }
 
