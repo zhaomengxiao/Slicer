@@ -289,9 +289,11 @@ void qSlicerAbstractModuleFactoryManager::registerModules(const QString& path)
   foreach (const QFileInfo& file,
            directory.entryInfoList(QDir::Files))
   {
-   if(!path.contains("_r")){
+    auto filepath = file.absoluteFilePath();
+   if(!filepath.contains("_r")) {
      this->registerModule(file);
    }
+  
   }
 }
 
@@ -380,9 +382,8 @@ void qSlicerAbstractModuleFactoryManager::instantiateModules()
   foreach (const QString& moduleName, d->RegisteredModules.keys())
   {
     emit moduleAboutToBeInstantiated(moduleName);
-    if (!moduleName.contains("_r")) {
-      this->instantiateModule(moduleName);
-    }
+    this->instantiateModule(moduleName);
+   
     
   }
 
@@ -438,17 +439,7 @@ qSlicerAbstractCoreModule* qSlicerAbstractModuleFactoryManager
 QStringList qSlicerAbstractModuleFactoryManager::registeredModuleNames() const
 {
   Q_D(const qSlicerAbstractModuleFactoryManager);
-
-  // 获取所有注册模块的名称
-  QStringList allKeys = d->RegisteredModules.keys();
-
-  // 使用列表推导创建一个新列表，排除包含 "_r" 的键
-  QStringList filteredKeys;
-  foreach(const QString & key, allKeys) {
-    if (!key.endsWith("_r"))
-      filteredKeys.append(key);
-  }
-  return filteredKeys;
+  return d->RegisteredModules.keys();
 }
 
 //-----------------------------------------------------------------------------
