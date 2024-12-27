@@ -81,6 +81,7 @@ macro(SlicerMacroExtractRepositoryInfo)
   set(${wc_info_prefix}_WC_REVISION "NA")
   set(${wc_info_prefix}_WC_REVISION_NAME "NA")
   set(${wc_info_prefix}_WC_REVISION_HASH "NA")
+  set(${wc_info_prefix}_WC_LAST_CHANGED_DATE "0000-00-00")
 
   if(NOT EXISTS ${MY_SOURCE_DIR}/.git)
 
