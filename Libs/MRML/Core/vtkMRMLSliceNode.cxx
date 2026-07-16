@@ -803,6 +803,23 @@ void vtkMRMLSliceNode::UpdateMatrices()
     //
     // RAS = XYToRAS * XY
     //
+    const char* layoutName = this->GetLayoutName();
+    const char* singletonTag = this->GetSingletonTag();
+    const bool isRedSlice =
+        (layoutName && strcmp(layoutName, "Red") == 0) ||
+        (singletonTag && strcmp(singletonTag, "Red") == 0);
+
+    if (isRedSlice && this->SliceToRAS && this->SliceToRAS->GetElement(1, 1) > 0.0)
+    {
+      // Flip slice local Y and Z axes, equivalent to 180 deg around slice X.
+      // This is safer than only changing element(1,1), because it keeps the
+      // orientation matrix orthonormal/handedness-consistent.
+      for (int row = 0; row < 3; ++row)
+      {
+          this->SliceToRAS->SetElement(row, 1, -this->SliceToRAS->GetElement(row, 1));
+          this->SliceToRAS->SetElement(row, 2, -this->SliceToRAS->GetElement(row, 2));
+      }
+    }
     vtkMatrix4x4::Multiply4x4(this->SliceToRAS, xyToSlice.GetPointer(), xyToRAS.GetPointer());
 
     bool modified = false;
