@@ -230,12 +230,9 @@ void vtkMRMLOrientationMarkerDisplayableManager::vtkInternal::SetupMarkerRendere
     camera->ParallelProjectionOn();
   }
 
-  // In 3D viewers we need to follow the renderer and update the orientation marker accordingly
-  vtkMRMLViewNode* threeDViewNode = vtkMRMLViewNode::SafeDownCast(this->External->GetMRMLDisplayableNode());
-  if (threeDViewNode)
-  {
-    this->AddRendererUpdateObserver(renderer);
-  }
+  // Keep the orientation marker synchronized with the latest view state.
+  // Slice view matrices may change before or after the marker is created.
+  this->AddRendererUpdateObserver(renderer);
 }
 
 
