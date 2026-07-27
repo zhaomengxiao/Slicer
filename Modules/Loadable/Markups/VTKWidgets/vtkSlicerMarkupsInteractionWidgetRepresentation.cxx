@@ -22,6 +22,8 @@
 #include "vtkSlicerMarkupsInteractionWidgetRepresentation.h"
 
 // VTK includes
+#include <vtkDoubleArray.h>
+#include <vtkIdTypeArray.h>
 #include <vtkPlane.h>
 #include <vtkPointData.h>
 
@@ -311,6 +313,28 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::UpdatePlaneScaleHandles()
     scaleHandlePoints->SetPoint(i, scaleHandlePoint);
   }
   this->Pipeline->ScaleHandlePoints->SetPoints(scaleHandlePoints);
+
+  // Keep PointData arrays sized to the new point set. CreateScaleHandles may
+  // allocate more orientation/visibility tuples than UpdatePlaneScaleHandles
+  // writes (historically 10 vs 8); mismatched lengths cause OOB GetPoint during
+  // UpdateScaleHandleOrientation.
+  const vtkIdType pointCount = scaleHandlePoints->GetNumberOfPoints();
+  vtkPointData* pointData = this->Pipeline->ScaleHandlePoints->GetPointData();
+  if (pointData)
+  {
+    if (vtkDoubleArray* orientationArray =
+          vtkDoubleArray::SafeDownCast(pointData->GetArray("orientation")))
+    {
+      orientationArray->SetNumberOfComponents(9);
+      orientationArray->SetNumberOfTuples(pointCount);
+    }
+    if (vtkIdTypeArray* visibilityArray =
+          vtkIdTypeArray::SafeDownCast(pointData->GetArray("visibility")))
+    {
+      visibilityArray->SetNumberOfValues(pointCount);
+    }
+  }
+
   this->NeedToRenderOn();
 }
 
@@ -706,15 +730,23 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::CreateScaleHandles()
   if (planeNode || roiNode)
   {
     vtkNew<vtkPoints> points;
-    points->InsertNextPoint(distance, 0.0, 0.0); // X-axis +ve
-    points->InsertNextPoint(0.0, distance, 0.0); // Y-axis +ve
-    points->InsertNextPoint(0.0, 0.0, distance); // Z-axis +ve
-    points->InsertNextPoint(-distance, 0.0, 0.0); // X-axis -ve
-    points->InsertNextPoint(0.0, -distance, 0.0); // Y-axis -ve
-    points->InsertNextPoint(0.0, 0.0, -distance); // Z-axis -ve
-
-    if (roiNode)
+    if (planeNode)
     {
+      // Match vtkMRMLMarkupsPlaneDisplayNode scale-handle enum (HandlePlane_Last == 8).
+      // Placeholder positions; UpdatePlaneScaleHandles overwrites with edges/corners.
+      for (int i = 0; i < vtkMRMLMarkupsPlaneDisplayNode::HandlePlane_Last; ++i)
+      {
+        points->InsertNextPoint(0.0, 0.0, 0.0);
+      }
+    }
+    else // roiNode
+    {
+      points->InsertNextPoint(distance, 0.0, 0.0); // X-axis +ve
+      points->InsertNextPoint(0.0, distance, 0.0); // Y-axis +ve
+      points->InsertNextPoint(0.0, 0.0, distance); // Z-axis +ve
+      points->InsertNextPoint(-distance, 0.0, 0.0); // X-axis -ve
+      points->InsertNextPoint(0.0, -distance, 0.0); // Y-axis -ve
+      points->InsertNextPoint(0.0, 0.0, -distance); // Z-axis -ve
       points->InsertNextPoint(distance, distance, distance);
       points->InsertNextPoint(distance, distance, -distance);
       points->InsertNextPoint(distance, -distance, distance);
@@ -730,13 +762,6 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::CreateScaleHandles()
           points->InsertNextPoint(0.0, 0.0, 0.0);
         }
       }
-    }
-    else if (planeNode)
-    {
-      points->InsertNextPoint(distance, distance, 0.0);
-      points->InsertNextPoint(-distance, distance, 0.0);
-      points->InsertNextPoint(-distance, -distance, 0.0);
-      points->InsertNextPoint(distance, -distance, 0.0);
     }
 
     this->Pipeline->ScaleHandlePoints->SetPoints(points);
@@ -952,7 +977,9 @@ void vtkSlicerMarkupsInteractionWidgetRepresentation::GetInteractionHandlePositi
   if (vtkMRMLMarkupsROINode::SafeDownCast(markupsNode) || vtkMRMLMarkupsPlaneNode::SafeDownCast(markupsNode))
   {
     vtkPolyData* handlePolyData = this->GetHandlePolydata(type);
-    if (!handlePolyData)
+    if (!handlePolyData
+      || index < 0
+      || index >= handlePolyData->GetNumberOfPoints())
     {
       return;
     }

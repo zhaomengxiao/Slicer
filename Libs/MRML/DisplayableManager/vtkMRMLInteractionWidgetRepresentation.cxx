@@ -1232,10 +1232,15 @@ void vtkMRMLInteractionWidgetRepresentation::UpdateScaleHandleOrientation()
   }
   worldToHandleTransform->TransformVector(viewUp_World, viewUp_Handle);
 
-  for (int i = 0; i < orientationArray->GetNumberOfTuples(); ++i)
+  // Never iterate past the point set: orientation tuples can outlive points when
+  // UpdatePlaneScaleHandles replaces ScaleHandlePoints without resizing PointData.
+  const vtkIdType pointCount = handlePolyData->GetNumberOfPoints();
+  const vtkIdType orientationCount = orientationArray->GetNumberOfTuples();
+  const vtkIdType handleCount = pointCount < orientationCount ? pointCount : orientationCount;
+  for (vtkIdType i = 0; i < handleCount; ++i)
   {
     double interactionHandlePosition[3] = { 0.0, 0.0, 0.0 };
-    this->GetInteractionHandlePositionWorld(InteractionScaleHandle, i, interactionHandlePosition);
+    this->GetInteractionHandlePositionWorld(InteractionScaleHandle, static_cast<int>(i), interactionHandlePosition);
     this->GetHandleToCameraVectorWorld(interactionHandlePosition, viewDirection_World);
     worldToHandleTransform->TransformVector(viewDirection_World, viewDirection_Handle);
 
