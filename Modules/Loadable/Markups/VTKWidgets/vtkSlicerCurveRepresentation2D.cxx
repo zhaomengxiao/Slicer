@@ -106,9 +106,15 @@ void vtkSlicerCurveRepresentation2D::UpdateFromMRMLInternal(vtkMRMLNode* caller,
 
   this->LineActor->SetVisibility(markupsNode->GetNumberOfControlPoints() >= 2);
 
-  // Hide the line actor if it doesn't intersect the current slice
+  // Only explicitly opted-in curves stay visible while browsing non-intersecting
+  // slices. This preserves the upstream behavior for all other markups curves.
   this->SliceDistance->Update();
-  if (!this->IsRepresentationIntersectingSlice(vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()), this->SliceDistance->GetScalarArrayName()))
+  const bool keepLineVisibleOnAllSlices =
+    markupsNode->GetAttribute("PlanTDental.ArchCurve.VisibleOnAllRedSlices") != nullptr;
+  if (!keepLineVisibleOnAllSlices &&
+      !this->IsRepresentationIntersectingSlice(
+        vtkPolyData::SafeDownCast(this->SliceDistance->GetOutput()),
+        this->SliceDistance->GetScalarArrayName()))
   {
     this->LineActor->SetVisibility(false);
   }
