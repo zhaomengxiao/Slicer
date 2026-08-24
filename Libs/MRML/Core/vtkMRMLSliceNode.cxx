@@ -809,7 +809,16 @@ void vtkMRMLSliceNode::UpdateMatrices()
         (layoutName && strcmp(layoutName, "Red") == 0) ||
         (singletonTag && strcmp(singletonTag, "Red") == 0);
 
-    if (isRedSlice && this->SliceToRAS && this->SliceToRAS->GetElement(1, 1) > 0.0)
+    // The clinical MPR orientations are owned by VolumeResliceDriver. Do not
+    // apply the legacy Red-view compensation to a driven slice: its sign test
+    // changes as a plane rotates through 90 degrees and would flip the local
+    // Y/Z axes during an otherwise continuous rotation.
+    const char* volumeResliceDriver =
+        this->GetAttribute("VolumeResliceDriver.Driver");
+    const bool isVolumeResliceDriven =
+        volumeResliceDriver && volumeResliceDriver[0] != '\0';
+    if (isRedSlice && !isVolumeResliceDriven && this->SliceToRAS &&
+        this->SliceToRAS->GetElement(1, 1) > 0.0)
     {
       // Flip slice local Y and Z axes, equivalent to 180 deg around slice X.
       // This is safer than only changing element(1,1), because it keeps the
