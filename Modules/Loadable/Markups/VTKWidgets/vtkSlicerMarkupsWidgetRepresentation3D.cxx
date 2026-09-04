@@ -17,9 +17,11 @@
 =========================================================================*/
 
 // VTK includes
+#include "vtkActor.h"
 #include "vtkCallbackCommand.h"
 #include "vtkCamera.h"
 #include "vtkCellPicker.h"
+#include "vtkDataSet.h"
 #include "vtkLabelPlacementMapper.h"
 #include "vtkLine.h"
 #include "vtkFloatArray.h"
@@ -31,17 +33,22 @@
 #include "vtkPointData.h"
 #include "vtkPointSetToLabelHierarchy.h"
 #include "vtkPolyDataMapper.h"
+#include "vtkPropCollection.h"
 #include "vtkProperty.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
 #include "vtkFastSelectVisiblePoints.h"
 #include "vtkSlicerMarkupsWidgetRepresentation3D.h"
 #include "vtkSphereSource.h"
+#include "vtkStaticCellLocator.h"
 #include "vtkStringArray.h"
 #include "vtkTextActor.h"
 #include "vtkTextProperty.h"
 #include "vtkTransform.h"
 #include "vtkTransformPolyDataFilter.h"
+
+#include <utility>
+#include <vector>
 
 // MRML includes
 #include <vtkMRMLApplicationLogic.h>
@@ -49,7 +56,14 @@
 #include <vtkMRMLInteractionEventData.h>
 #include <vtkMRMLViewNode.h>
 
+// Polydata with at least this many cells gets a vtkStaticCellLocator attached
+// to the accurate picker; smaller datasets are cheaper to intersect brute-force.
+static const vtkIdType PICK_LOCATOR_MINIMUM_NUMBER_OF_CELLS = 10000;
+
 std::map<vtkRenderer*, vtkSmartPointer<vtkFloatArray> > vtkSlicerMarkupsWidgetRepresentation3D::CachedZBuffers;
+
+std::map<vtkDataSet*, vtkSlicerMarkupsWidgetRepresentation3D::PickLocatorCacheEntry>
+  vtkSlicerMarkupsWidgetRepresentation3D::PickLocatorCache;
 
 vtkSlicerMarkupsWidgetRepresentation3D::ControlPointsPipeline3D::ControlPointsPipeline3D()
 {
@@ -1090,8 +1104,75 @@ void vtkSlicerMarkupsWidgetRepresentation3D::SetRenderer(vtkRenderer *ren)
 }
 
 //---------------------------------------------------------------------------
+void vtkSlicerMarkupsWidgetRepresentation3D::UpdatePickLocators()
+{
+  if (!this->Renderer || !this->AccuratePicker)
+  {
+    return;
+  }
+
+  // Prune cached locators whose dataset is not referenced by the scene anymore
+  // (the locator itself holds one reference, so a reference count of 1 means
+  // that only the locator is keeping the dataset alive).
+  for (auto it = this->PickLocatorCache.begin(); it != this->PickLocatorCache.end();)
+  {
+    vtkDataSet* cachedDataSet = it->second.Locator ? it->second.Locator->GetDataSet() : nullptr;
+    if (!cachedDataSet || cachedDataSet->GetReferenceCount() <= 1)
+    {
+      it = this->PickLocatorCache.erase(it);
+    }
+    else
+    {
+      ++it;
+    }
+  }
+
+  // Collect the datasets of the large polydata that this picker may hit.
+  vtkPropCollection* props = this->Renderer->GetViewProps();
+  vtkCollectionSimpleIterator propIt;
+  vtkProp* prop = nullptr;
+  std::vector<std::pair<vtkDataSet*, vtkMTimeType>> neededDataSets;
+  for (props->InitTraversal(propIt); (prop = props->GetNextProp(propIt));)
+  {
+    vtkActor* actor = vtkActor::SafeDownCast(prop);
+    if (!actor || !actor->GetVisibility() || !actor->GetPickable()
+      || actor->GetProperty()->GetOpacity() <= 0.0)
+    {
+      continue;
+    }
+    vtkPolyDataMapper* mapper = vtkPolyDataMapper::SafeDownCast(actor->GetMapper());
+    vtkPolyData* polyData = mapper ? mapper->GetInput() : nullptr;
+    if (!polyData || polyData->GetNumberOfCells() < PICK_LOCATOR_MINIMUM_NUMBER_OF_CELLS)
+    {
+      continue;
+    }
+    neededDataSets.emplace_back(polyData, polyData->GetMTime());
+  }
+
+  // Build missing locators and replace the locators of datasets that have been
+  // modified since they were built. vtkCellPicker stops at the first registered
+  // locator matching the picked dataset, so rebuild the picker's locator list
+  // on each pick to guarantee that only up-to-date locators are registered.
+  this->AccuratePicker->RemoveAllLocators();
+  for (auto& needed : neededDataSets)
+  {
+    PickLocatorCacheEntry& entry = this->PickLocatorCache[needed.first];
+    if (!entry.Locator || entry.MTime != needed.second)
+    {
+      vtkSmartPointer<vtkStaticCellLocator> locator = vtkSmartPointer<vtkStaticCellLocator>::New();
+      locator->SetDataSet(needed.first);
+      locator->BuildLocator();
+      entry.Locator = locator;
+      entry.MTime = needed.second;
+    }
+    this->AccuratePicker->AddLocator(entry.Locator);
+  }
+}
+
+//----------------------------------------------------------------------
 bool vtkSlicerMarkupsWidgetRepresentation3D::AccuratePick(int x, int y, double pickPoint[3], double pickNormal[3]/*=nullptr*/)
 {
+  this->UpdatePickLocators();
   bool success = this->AccuratePicker->Pick(x, y, 0, this->Renderer);
   if (pickNormal)
   {

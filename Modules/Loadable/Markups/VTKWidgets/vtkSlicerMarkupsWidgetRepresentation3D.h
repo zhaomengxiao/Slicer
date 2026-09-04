@@ -35,11 +35,13 @@
 class vtkActor;
 class vtkActor2D;
 class vtkCellPicker;
+class vtkDataSet;
 class vtkFastSelectVisiblePoints;
 class vtkGlyph3DMapper;
 class vtkLabelPlacementMapper;
 class vtkPolyDataMapper;
 class vtkProperty;
+class vtkStaticCellLocator;
 
 class vtkMRMLInteractionEventData;
 
@@ -152,6 +154,23 @@ protected:
   using vtkMRMLAbstractWidgetRepresentation::UpdateRelativeCoincidentTopologyOffsets;
 
   vtkSmartPointer<vtkCellPicker> AccuratePicker;
+
+  /// Attaches per-dataset locators to AccuratePicker for the large polydata
+  /// currently visible in the renderer. vtkCellPicker intersects every cell of
+  /// each dataset that has no registered locator, which makes accurate picking
+  /// very slow in scenes with large meshes. With a locator attached, each pick
+  /// becomes an O(log n) ray query. Locators are built lazily and shared between
+  /// all markups widget representations through PickLocatorCache.
+  void UpdatePickLocators();
+
+  /// Locators shared between all markups widget representations, keyed by dataset.
+  /// An entry is pruned when the locator is the only remaining owner of the dataset.
+  struct PickLocatorCacheEntry
+  {
+    vtkSmartPointer<vtkStaticCellLocator> Locator;
+    vtkMTimeType MTime{ 0 };
+  };
+  static std::map<vtkDataSet*, PickLocatorCacheEntry> PickLocatorCache;
 
   double TextActorPositionWorld[3];
   bool TextActorOccluded;
